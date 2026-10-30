@@ -76,8 +76,13 @@ git submodule update --remote study   # pull the latest study repo
 npx astro preview --host 100.110.48.128 --port 4321 --allowed-hosts tmos-hq,tmos-hq.tail3b5b54.ts.net
 ```
 
+## Publishing
+
+The repo is https://github.com/0bserver07/rl-study-site (the local `study-site` branch pushes to its `master`). `.github/workflows/deploy.yml` builds `master` with the pinned `study/` submodule and publishes `dist/` to GitHub Pages; `ci.yml` builds pull requests. The Pages environment deploys only from `master`.
+
+The custom domain is `rl.yad.codes` (set in the repo's Pages settings, and as `site:` in `astro.config.mjs` and `src/config.ts`). It needs one DNS record where yad.codes is managed: `CNAME rl → 0bserver07.github.io`. Once GitHub has issued the certificate, turn on "Enforce HTTPS" in the Pages settings. Links are written from the site root (`/posts/...`), so the site needs a domain of its own: the bare `0bserver07.github.io/rl-study-site/` address serves the HTML without its styles, and redirects to the custom domain once that is set.
+
 ## Not done yet
 
-- Not deployed. `site:` in `astro.config.mjs` is still `https://example.com`. Links are written from the site root (`/posts/...`), so the site needs a domain or subdomain of its own; serving it under a path such as `user.github.io/repo/` would need base-path support first.
 - Every lecture is `unreviewed`. Decide whether the site goes public in that state before deploying.
 - The theme's `projects` and `docs` routes still build (empty), which logs "collection is empty" warnings.
