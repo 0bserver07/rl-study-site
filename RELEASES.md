@@ -2,6 +2,13 @@
 
 Versions of this site. The lectures, notes, and exercises have their own history in the study repo's [changelog](/changelog/). Each release here names the study repo commit it was built from.
 
+## 0.1.1 (2026-10-30)
+
+Built from the study repo at commit `82eda54`.
+
+- Every internal link on the site now resolves. The study repo fixed eight dead entries in the diagrams page's contents list, and a formula in the math cheat sheet that showed up as a link (its pull request #15).
+- The build no longer reports text that only looks like a link, such as inline code or an escaped bracket, as a broken link.
+
 ## 0.1.0 (2026-10-30)
 
 The first version, built from the study repo at commit `37cc88d`.
