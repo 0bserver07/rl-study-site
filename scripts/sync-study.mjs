@@ -165,10 +165,12 @@ function assetUrlFor(relPath) {
 }
 
 function rewriteLinks(markdown, srcDir, unresolved) {
-  // Leave fenced code blocks alone.
+  // Leave fenced code blocks alone, and inline code spans and escaped brackets
+  // (`S[π](s_t)`, S\[π](s_t)), which are text that only looks like a link.
   return markdown.split(/(^\s*```[\s\S]*?^\s*```)/m).map((part, i) => {
     if (i % 2 === 1) return part;
-    return part.replace(/(!?)\[([^\]]*)\]\(([^)\s]+)\)/g, (whole, bang, text, url) => {
+    return part.replace(/(`+)[^\n]*?\1|(?<!\\)(!?)\[([^\]]*)\]\(([^)\s]+)\)/g, (whole, ticks, bang, text, url) => {
+      if (ticks) return whole;
       if (/^(https?:|mailto:|#)/.test(url)) return whole;
       const [target, hash] = url.split('#');
       const anchor = hash ? `#${hash}` : '';
