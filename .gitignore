@@ -29,3 +29,8 @@ pnpm-debug.log*
 
 # Claude Code local/personal files (keep project context, ignore personal notes)
 .claude/*.local.md
+
+# Study site: generated from the study/ submodule by scripts/sync-study.mjs
+src/generated/
+public/landscape.svg
+public/study-assets/

@@ -1,0 +1,95 @@
+---
+/**
+ * One page per track: the chapter head, the loop figure, the lectures in
+ * curriculum order with their checkpoints, and the videos that go with them.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import ChalkLoop from '../../components/roadmap/ChalkLoop.astro';
+import LectureCard from '../../components/roadmap/LectureCard.astro';
+import study from '../../generated/study.json';
+
+export function getStaticPaths() {
+  return study.tracks.map((t, i) => ({ params: { id: t.id }, props: { index: i } }));
+}
+
+const { index } = Astro.props;
+const words = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+const t = study.tracks[index];
+const items = t.lectures
+  .map((n) => study.lectures.find((l) => l.num === n)!)
+  .filter(Boolean)
+  .sort((a, b) => a.order - b.order);
+const share = Math.round((t.hours / study.totalHours) * 100);
+const prev = study.tracks[index - 1];
+const next = study.tracks[index + 1];
+const videos = items
+  .flatMap((l) => l.videos.map((v) => ({ ...v, num: l.num })))
+  .filter((v, i, all) => all.findIndex((x) => x.id === v.id) === i);
+const exercises = study.exercises.filter((e) => t.lectures.includes(e.num));
+---
+
+<BaseLayout title={`${t.name}: track ${index + 1}`} description={t.blurb}>
+  <Header slot="header" />
+
+  <main class="bk">
+    <section class="bk-page bk-chapter" style={`--c: ${t.color}; padding-top: 3rem`}>
+      <div class="bk-chapter-head">
+        <span class="bk-bignum" aria-hidden="true">{index + 1}</span>
+        <div>
+          <p class="bk-label">track {words[index]} of {words[study.tracks.length - 1]}</p>
+          <h1 style="font-weight: 800; font-size: clamp(2.3rem, 5vw, 3.4rem); line-height: 1.05; margin: 0.1rem 0 0.35rem">{t.name}</h1>
+          <p class="bk-meta" style="margin: 0">
+            About {Math.round(t.hours)} hours, {share}% of the whole. {items.length} lectures{t.exerciseCount ? `, ${t.exerciseCount} with an exercise` : ''}.
+          </p>
+        </div>
+      </div>
+
+      <ChalkLoop track={t.id} color={t.color} label="Figure." />
+      <p>{t.blurb}</p>
+      <p>
+        Start with <a href={`/posts/${items[0].slug}/`}>lecture {items[0].num}</a>.
+        Each lecture lists what to read first, and ends with a checkpoint: something to do with the page closed.
+      </p>
+
+      <ol class="bk-lectures">
+        {items.map((l, i) => <LectureCard lecture={l} color={t.color} first={i === 0} />)}
+      </ol>
+
+      {exercises.length > 0 && (
+        <>
+          <h2 style="margin-top: 2.5rem">Exercises in this track</h2>
+          <ul>
+            {exercises.map((e) => <li><a href={e.url}>{e.name}</a>: {e.what} (with lecture {e.num})</li>)}
+          </ul>
+        </>
+      )}
+
+      {videos.length > 0 && (
+        <>
+          <h2 style="margin-top: 2.5rem">On video</h2>
+          <div class="bk-facts-box" style="margin: 0">
+            <div class="watch">
+              {videos.map((v) => (
+                <a href={`https://www.youtube.com/watch?v=${v.id}`}>
+                  <img src={`https://i.ytimg.com/vi/${v.id}/mqdefault.jpg`} alt="" loading="lazy" width="320" height="180" />
+                  {v.title} <span style="color: var(--muted)">(with {v.num})</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      <nav class="bk-prevnext" aria-label="Other tracks">
+        {prev && <a href={`/tracks/${prev.id}/`}><small>previous track</small><b>{prev.name}</b></a>}
+        {next
+          ? <a class="next" href={`/tracks/${next.id}/`}><small>next track</small><b>{next.name}</b></a>
+          : <a class="next" href="/#tracks"><small>that was the last track</small><b>All eight tracks</b></a>}
+      </nav>
+    </section>
+  </main>
+
+  <Footer slot="footer" />
+</BaseLayout>

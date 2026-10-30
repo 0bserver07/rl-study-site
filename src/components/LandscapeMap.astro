@@ -1,0 +1,105 @@
+---
+/**
+ * LandscapeMap (study site)
+ *
+ * The README's landscape diagram, rebuilt as HTML so it reads at any width and
+ * every part of it is a link: family names go to their track, methods go to
+ * the lecture that covers them. Content: src/landscape.json. Lecture slugs and
+ * titles: src/generated/study.json. Colours: src/study-tracks.json.
+ */
+
+import landscape from '../landscape.json';
+import tracks from '../study-tracks.json';
+import study from '../generated/study.json';
+
+const lectureByNum = new Map(study.lectures.map((l) => [l.num, l]));
+const trackById = new Map(tracks.map((t) => [t.id, t]));
+const href = (num: string) => `/posts/${lectureByNum.get(num)?.slug ?? ''}/`;
+const titleOf = (num: string) => lectureByNum.get(num)?.title ?? `Lecture ${num}`;
+---
+
+<section class="landscape-map" aria-label="The landscape of reinforcement learning, as links">
+  <div class="text-center mb-6">
+    <a href={href('01')} class="lm-mdp" title={titleOf('01')}>
+      <span class="lm-mdp-name">MDP</span>
+      <span class="lm-mdp-symbols">S · A · P · R · γ</span>
+      <span class="lm-num">01</span>
+    </a>
+    <p class="lm-intro">{landscape.intro}</p>
+  </div>
+
+  <div class="lm-grid">
+    {landscape.families.map((f) => {
+      const track = trackById.get(f.track);
+      const count = track?.lectures.length ?? 0;
+      return (
+        <article class="lm-card" style={`--lm-color: ${track?.color ?? '#888'}`}>
+          <h3 class="lm-name"><a href={`/posts/tag/${f.track}/`}>{f.name}</a></h3>
+          <dl class="lm-answers">
+            <div><dt>Reward</dt><dd>{f.reward}</dd></div>
+            <div><dt>Data</dt><dd>{f.data}</dd></div>
+            <div><dt>Steps</dt><dd>{f.steps}</dd></div>
+          </dl>
+          <ul class="lm-groups">
+            {f.groups.map((g) => (
+              <li>
+                <span class="lm-group-title">{g.title}</span>
+                <span class="lm-items">
+                  {g.items.map(([label, num], i) => (
+                    <>{i > 0 && <span class="lm-sep">, </span>}<a href={href(num)} title={titleOf(num)}>{label}<span class="lm-num">{num}</span></a></>
+                  ))}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p class="lm-takeaway">{f.takeaway}</p>
+          <a class="lm-track-link" href={`/tracks/${f.track}/`}>All {count} lectures in this track →</a>
+        </article>
+      );
+    })}
+  </div>
+
+  <a class="lm-bridge" href={href(landscape.bridge.lecture)} title={titleOf(landscape.bridge.lecture)}>
+    {landscape.bridge.text}<span class="lm-num">{landscape.bridge.lecture}</span>
+  </a>
+
+  <p class="lm-systems">
+    {landscape.systems.text}:{' '}
+    {landscape.systems.items.map(([label, num], i) => (
+      <>{i > 0 && ', '}<a href={href(num)} title={titleOf(num)}>{label}<span class="lm-num">{num}</span></a></>
+    ))}.
+  </p>
+</section>
+
+<style>
+  .lm-mdp { display: inline-flex; align-items: baseline; gap: 0.6rem; padding: 0.35rem 0.9rem; border: 1.2px solid var(--ink); border-radius: 3px; background: var(--box); color: var(--ink); text-decoration: none; }
+  .lm-mdp:hover { background: #fff6df; }
+  .lm-mdp-name { font-weight: 800; }
+  .lm-mdp-symbols { font-style: italic; }
+  .lm-intro { max-width: 40rem; margin: 0.9rem auto 0; color: var(--ink-soft); font-style: italic; line-height: 1.5; }
+  .lm-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(17.5rem, 1fr)); }
+  .lm-card { display: flex; flex-direction: column; background: var(--box); border: 1px solid var(--rule); border-top: 3px solid var(--lm-color); border-radius: 3px; padding: 0.9rem 1.05rem 1rem; }
+  .lm-name { font-weight: 800; font-size: 1.35rem; line-height: 1.15; margin: 0 0 0.55rem; }
+  .lm-name a { color: var(--ink); text-decoration: none; }
+  .lm-name a:hover { color: var(--blue); text-decoration: underline; }
+  .lm-answers { margin: 0 0 0.75rem; display: grid; gap: 0.1rem; font-size: 1rem; line-height: 1.4; }
+  .lm-answers div { display: grid; grid-template-columns: 3.6rem 1fr; gap: 0.4rem; }
+  .lm-answers dt { font-family: var(--sc); font-weight: 500; color: var(--muted); }
+  .lm-answers dd { margin: 0; color: var(--ink); font-style: italic; }
+  .lm-groups { list-style: none; padding: 0; margin: 0 0 0.75rem; display: grid; gap: 0.35rem; font-size: 1rem; line-height: 1.4; }
+  .lm-group-title { display: block; font-family: var(--sc); font-weight: 500; font-size: 0.95rem; color: var(--muted); }
+  .lm-items a { color: var(--ink); text-decoration: none; border-bottom: 1px dotted var(--muted); }
+  .lm-items a:hover { color: var(--blue); border-bottom-color: var(--blue); }
+  .lm-sep { color: var(--muted); }
+  .lm-num { font-family: var(--sc); font-weight: 700; font-size: 0.82rem; color: var(--lm-color, var(--red)); margin-left: 0.2rem; vertical-align: 0.25em; }
+  .lm-takeaway { font-style: italic; color: var(--ink-soft); margin: auto 0 0.45rem; padding-top: 0.5rem; border-top: 1px dotted var(--rule); font-size: 1rem; line-height: 1.4; }
+  .lm-track-link { font-family: var(--sc); font-weight: 500; font-size: 1rem; color: var(--blue); text-decoration: none; }
+  .lm-track-link:hover { text-decoration: underline; }
+  .lm-bridge { display: block; margin: 1rem 0 0; padding: 0.65rem 1rem; border: 1px dashed var(--muted); border-radius: 3px; color: var(--ink); text-decoration: none; font-style: italic; }
+  .lm-bridge:hover { border-style: solid; background: var(--box); }
+  .lm-bridge .lm-num { --lm-color: var(--c-rlaif); font-style: normal; }
+  .lm-systems { margin: 0.7rem 0 0; color: var(--ink-soft); }
+  .lm-systems a { color: var(--ink); text-decoration: none; border-bottom: 1px dotted var(--muted); }
+  .lm-systems .lm-num { --lm-color: var(--c-systems); }
+  .lm-mdp .lm-num { --lm-color: var(--c-foundations); }
+</style>

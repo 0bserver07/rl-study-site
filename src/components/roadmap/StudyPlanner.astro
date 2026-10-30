@@ -1,0 +1,85 @@
+---
+/**
+ * StudyPlanner: pick hours per week, see the tracks laid end to end.
+ * Hours: CURRICULUM.md's estimate per lecture (midpoint of the range) plus
+ * about two hours per exercise, from scripts/sync-study.mjs.
+ */
+import study from '../../generated/study.json';
+
+const tracks = study.tracks.map((t) => ({ id: t.id, name: t.name, hours: t.hours, color: t.color }));
+const llm = ['foundations', 'rlhf', 'rlaif', 'rlvr', 'agentic'];
+const plannerData = { tracks, llm };
+---
+
+<div class="bk-planner" id="planner-board">
+  <div class="bk-planner-controls">
+    <label>
+      <span>Hours a week: <output data-rate>8</output></span>
+      <input type="range" min="2" max="25" step="1" value="8" data-slider aria-label="Hours per week" />
+    </label>
+    <div class="modes" role="group" aria-label="Which tracks">
+      <button type="button" data-mode="all" aria-pressed="true">every track</button>
+      <button type="button" data-mode="llm" aria-pressed="false">the LLM path</button>
+    </div>
+  </div>
+
+  <div class="bk-gantt" data-gantt>
+    {tracks.map((t, i) => (
+      <div class="row" data-row={t.id}>
+        <span>{i + 1}. {t.name}</span>
+        <div class="lane"><div class="seg" style={`background: ${t.color}`} data-seg></div></div>
+      </div>
+    ))}
+  </div>
+
+  <p class="bk-planner-note" data-note></p>
+</div>
+
+<script define:vars={{ plannerData }}>
+  (function () {
+    const root = document.getElementById('planner-board');
+    if (!root) return;
+    const slider = root.querySelector('[data-slider]');
+    const rateEl = root.querySelector('[data-rate]');
+    const note = root.querySelector('[data-note]');
+    const buttons = root.querySelectorAll('[data-mode]');
+    let mode = 'all';
+
+    const fmt = (weeks) => {
+      if (weeks < 9) { const w = Math.max(1, Math.round(weeks)); return `${w} week${w === 1 ? '' : 's'}`; }
+      return `${Math.round(weeks / 4.345)} months`;
+    };
+
+    function render() {
+      const rate = Number(slider.value);
+      rateEl.textContent = String(rate);
+      const ids = mode === 'all' ? plannerData.tracks.map((t) => t.id) : plannerData.llm;
+      const chosen = plannerData.tracks.filter((t) => ids.includes(t.id));
+      const totalHours = chosen.reduce((s, t) => s + t.hours, 0);
+      const totalWeeks = totalHours / rate;
+      let start = 0;
+      for (const t of plannerData.tracks) {
+        const row = root.querySelector(`[data-row="${t.id}"]`);
+        const seg = row.querySelector('[data-seg]');
+        if (!ids.includes(t.id)) { row.classList.add('off'); seg.style.width = '0'; seg.textContent = ''; continue; }
+        row.classList.remove('off');
+        const weeks = t.hours / rate;
+        seg.style.left = `${(start / totalWeeks) * 100}%`;
+        seg.style.width = `${(weeks / totalWeeks) * 100}%`;
+        seg.textContent = `${Math.max(1, Math.round(weeks))}w`;
+        start += weeks;
+      }
+      const first = plannerData.tracks[0];
+      const finish = new Date(Date.now() + totalWeeks * 7 * 864e5).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+      note.innerHTML = `At ${rate} hours a week, ${first.name} takes <b>${fmt(first.hours / rate)}</b> and ${mode === 'all' ? 'all eight tracks' : 'the LLM path'} take <b>${fmt(totalWeeks)}</b>, finishing around ${finish}.`;
+    }
+
+    slider.addEventListener('input', render);
+    buttons.forEach((b) => b.addEventListener('click', () => {
+      mode = b.dataset.mode;
+      buttons.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      render();
+    }));
+    render();
+  })();
+</script>

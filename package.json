@@ -1,8 +1,8 @@
 {
-  "name": "mycelium-theme",
+  "name": "rl-study-site",
   "type": "module",
-  "version": "2.0.0",
-  "description": "Digital garden theme for Astro + Obsidian",
+  "version": "0.1.0",
+  "description": "The site for Study Reinforcement Learning, built on the Mycelium theme",
   "author": "Yad Konrad",
   "license": "MIT",
   "homepage": "https://github.com/0bserver07/mycelium-theme",
@@ -19,6 +19,9 @@
     "wikilinks"
   ],
   "scripts": {
+    "sync": "node scripts/sync-study.mjs",
+    "predev": "node scripts/sync-study.mjs",
+    "prebuild": "node scripts/sync-study.mjs",
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
@@ -34,8 +37,11 @@
     "@astrojs/mdx": "^7.0.3",
     "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.3",
+    "@fontsource/alegreya": "^5.3.0",
+    "@fontsource/alegreya-sc": "^5.3.0",
     "@fontsource/inter": "^5.3.0",
     "@fontsource/jetbrains-mono": "^5.3.0",
+    "@fontsource/kalam": "^5.3.0",
     "@resvg/resvg-js": "^2.6.2",
     "@tailwindcss/typography": "^0.5.20",
     "@tailwindcss/vite": "^4.3.3",

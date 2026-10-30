@@ -111,16 +111,17 @@ const searchData = JSON.stringify(searchIndex);
   </div>
 )}
 
-<script define:vars={{ searchData }}>
-  // Import Fuse.js dynamically
-  let Fuse;
+<!-- Study site: the index travels as JSON and the script below is bundled, so the
+     fuse.js import resolves. (As a define:vars script it was inlined unbundled, and
+     the browser could not resolve the bare 'fuse.js' specifier, so search never opened.) -->
+<script type="application/json" id="command-palette-data" set:html={searchData}></script>
+<script>
+  import Fuse from 'fuse.js';
   let fuse;
-  const searchIndex = JSON.parse(searchData);
+  const searchIndex = JSON.parse(document.getElementById('command-palette-data')?.textContent || '[]');
 
   async function initSearch() {
-    if (!Fuse) {
-      const module = await import('fuse.js');
-      Fuse = module.default;
+    if (!fuse) {
       fuse = new Fuse(searchIndex, {
         keys: ['title', 'description', 'tags'],
         threshold: 0.3,
@@ -156,7 +157,8 @@ const searchData = JSON.stringify(searchIndex);
 
     // Search on input
     input.addEventListener('input', (e) => {
-      const query = (e.target as HTMLInputElement).value.trim();
+      // Study site: plain JS; define:vars scripts are not compiled, so no TypeScript here.
+      const query = e.target.value.trim();
       if (query.length === 0) {
         showQuickActions();
       } else {
@@ -191,7 +193,7 @@ const searchData = JSON.stringify(searchIndex);
       if (searchResults) searchResults.classList.add('hidden');
     }
 
-    function performSearch(query: string) {
+    function performSearch(query) {
       if (!fuse || !searchResults || !quickActions) return;
 
       const results = fuse.search(query).slice(0, 10);

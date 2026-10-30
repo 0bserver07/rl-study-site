@@ -1,0 +1,199 @@
+---
+/**
+ * GridLearner: Q-learning on a small gridworld, running in the browser.
+ * The shading is max_a Q(s, a) for each square; the arrows are the greedy
+ * action; the line underneath is the return of each episode. It's the same
+ * algorithm as lecture 03 and exercise 03-q-learning.
+ */
+interface Props { caption?: string }
+const { caption } = Astro.props;
+
+// '.' empty, 'S' start, 'G' goal (+1), 'P' pit (-1), 'W' wall
+const LAYOUT = [
+  '.....G',
+  '.WW.P.',
+  '....W.',
+  '.WP...',
+  'S...W.',
+];
+const C = 60;
+const cols = LAYOUT[0].length, rows = LAYOUT.length;
+---
+
+<figure class="grid-learner" data-gridlearner data-layout={JSON.stringify(LAYOUT)}>
+  <svg viewBox={`0 0 ${cols * C} ${rows * C}`} role="img" aria-label="A gridworld. The agent starts bottom left; the goal is top right; two pits cost a reward of minus one." data-board>
+    {LAYOUT.map((row, y) => row.split('').map((ch, x) => (
+      <g data-cell={`${x},${y}`} data-kind={ch}>
+        <rect x={x * C} y={y * C} width={C} height={C} class:list={['cell', { wall: ch === 'W' }]} />
+        {ch === 'G' && <text x={x * C + C / 2} y={y * C + C / 2 + 7} text-anchor="middle" class="lbl goal">+1</text>}
+        {ch === 'P' && <text x={x * C + C / 2} y={y * C + C / 2 + 7} text-anchor="middle" class="lbl pit">−1</text>}
+        {ch === 'S' && <text x={x * C + 9} y={y * C + 18} class="lbl start">start</text>}
+        {ch !== 'W' && ch !== 'G' && ch !== 'P' && <path class="arrow" d="" />}
+      </g>
+    )))}
+    <circle class="agent" r="11" cx={C / 2} cy={(rows - 1) * C + C / 2} data-agent />
+  </svg>
+
+  <div class="gl-controls">
+    <button type="button" data-run>Run</button>
+    <button type="button" data-fast>Train 50 episodes</button>
+    <button type="button" data-reset>Reset</button>
+  </div>
+
+  <div class="gl-stats" aria-live="polite">
+    <span>episodes <b data-episodes>0</b></span>
+    <span>reached the goal in the last 20: <b data-wins>0</b></span>
+    <span>last return <b data-last>0.00</b></span>
+  </div>
+  <svg class="gl-spark" viewBox="0 0 300 48" preserveAspectRatio="none" aria-hidden="true">
+    <line x1="0" x2="300" y1="16" y2="16" class="zero" />
+    <polyline data-spark points="" />
+  </svg>
+
+  {caption && <figcaption set:html={caption} />}
+</figure>
+
+<style>
+  .grid-learner { margin: 0; }
+  .grid-learner svg[data-board] { width: 100%; height: auto; display: block; border: 1.2px solid var(--ink); background: var(--box); }
+  .grid-learner .cell { fill: var(--box); stroke: var(--rule); stroke-width: 1; transition: fill 0.25s; }
+  .grid-learner .cell.wall { fill: #3b362e; stroke: #3b362e; }
+  .grid-learner .lbl { font-family: var(--text); font-weight: 800; font-size: 20px; pointer-events: none; }
+  .grid-learner .lbl.goal { fill: #2f6f3e; }
+  .grid-learner .lbl.pit { fill: var(--red); }
+  .grid-learner .lbl.start { font-family: var(--sc); font-weight: 500; font-size: 13px; fill: var(--muted); }
+  .grid-learner .arrow { fill: none; stroke: var(--ink-soft); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; opacity: 0.75; }
+  .grid-learner .agent { fill: var(--red); stroke: #fff; stroke-width: 2; transition: cx 0.06s linear, cy 0.06s linear; }
+  .gl-controls { display: flex; gap: 0.6rem; flex-wrap: wrap; margin: 0.7rem 0 0.4rem; }
+  .gl-controls button { font-family: var(--sc); font-weight: 500; font-size: 1rem; letter-spacing: 0.02em; background: var(--box); color: var(--ink); border: 1.2px solid var(--ink); border-radius: 3px; padding: 0.15rem 0.7rem 0.25rem; cursor: pointer; }
+  .gl-controls button:hover { background: #fff6df; }
+  .gl-controls button[data-run][aria-pressed=true] { background: var(--ink); color: var(--paper); }
+  .gl-stats { display: flex; flex-wrap: wrap; gap: 0.2rem 1.1rem; font-size: 0.95rem; color: var(--ink-soft); }
+  .gl-stats b { color: var(--ink); font-variant-numeric: lining-nums tabular-nums; }
+  .gl-spark { width: 100%; height: 3rem; display: block; margin-top: 0.3rem; border-bottom: 1px solid var(--rule); }
+  .gl-spark polyline { fill: none; stroke: var(--red); stroke-width: 1.4; vector-effect: non-scaling-stroke; }
+  .gl-spark .zero { stroke: var(--rule); stroke-dasharray: 3 4; vector-effect: non-scaling-stroke; }
+</style>
+
+<script>
+  type Kind = '.' | 'S' | 'G' | 'P' | 'W';
+
+  function initGridLearner(root: HTMLElement) {
+    if (root.dataset.ready) return;
+    root.dataset.ready = '1';
+    const layout: string[] = JSON.parse(root.dataset.layout || '[]');
+    const rows = layout.length, cols = layout[0].length, C = 60;
+    const kind = (x: number, y: number) => layout[y][x] as Kind;
+    const start = (() => { for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) if (kind(x, y) === 'S') return [x, y]; return [0, rows - 1]; })();
+    const MOVES = [[0, -1], [1, 0], [0, 1], [-1, 0]]; // up, right, down, left
+    const GAMMA = 0.95, ALPHA = 0.5, STEP_COST = -0.02, MAX_STEPS = 60;
+
+    let Q: number[][][] = [];
+    let episodes = 0;
+    let returns: number[] = [];
+    let wins: boolean[] = [];
+    let pos = [...start];
+    let epReturn = 0, epSteps = 0;
+    let timer: number | null = null;
+
+    const $ = (sel: string) => root.querySelector(sel) as HTMLElement;
+    const agent = $('[data-agent]') as unknown as SVGCircleElement;
+
+    function reset() {
+      Q = Array.from({ length: cols }, () => Array.from({ length: rows }, () => [0, 0, 0, 0]));
+      episodes = 0; returns = []; wins = []; pos = [...start]; epReturn = 0; epSteps = 0;
+      draw();
+    }
+    const epsilon = () => Math.max(0.05, 0.3 * Math.pow(0.97, episodes));
+    function greedy(x: number, y: number) {
+      const q = Q[x][y]; const best = Math.max(...q);
+      const ties = [0, 1, 2, 3].filter((a) => q[a] === best);
+      return ties[Math.floor(Math.random() * ties.length)];
+    }
+    function step(): boolean {
+      const [x, y] = pos;
+      const a = Math.random() < epsilon() ? Math.floor(Math.random() * 4) : greedy(x, y);
+      let nx = x + MOVES[a][0], ny = y + MOVES[a][1];
+      if (nx < 0 || ny < 0 || nx >= cols || ny >= rows || kind(nx, ny) === 'W') { nx = x; ny = y; }
+      const k = kind(nx, ny);
+      const r = k === 'G' ? 1 : k === 'P' ? -1 : STEP_COST;
+      const done = k === 'G' || k === 'P';
+      const target = done ? r : r + GAMMA * Math.max(...Q[nx][ny]);
+      Q[x][y][a] += ALPHA * (target - Q[x][y][a]);
+      pos = [nx, ny]; epReturn += r; epSteps += 1;
+      if (done || epSteps >= MAX_STEPS) {
+        episodes += 1; returns.push(epReturn); wins.push(k === 'G');
+        if (returns.length > 120) returns.shift();
+        if (wins.length > 20) wins.shift();
+        pos = [...start]; epReturn = 0; epSteps = 0;
+        return true;
+      }
+      return false;
+    }
+
+    function shade(v: number) {
+      // paper -> green for value, paper -> red for cost
+      const t = Math.max(-1, Math.min(1, v));
+      const [r0, g0, b0] = [255, 253, 248];
+      const [r1, g1, b1] = t >= 0 ? [63, 138, 79] : [178, 58, 42];
+      const m = Math.abs(t) * 0.55;
+      return `rgb(${Math.round(r0 + (r1 - r0) * m)} ${Math.round(g0 + (g1 - g0) * m)} ${Math.round(b0 + (b1 - b0) * m)})`;
+    }
+    function arrowPath(x: number, y: number, a: number) {
+      const cx = x * C + C / 2, cy = y * C + C / 2, L = 13, H = 6;
+      const [dx, dy] = MOVES[a];
+      const tipX = cx + dx * L, tipY = cy + dy * L, tailX = cx - dx * L, tailY = cy - dy * L;
+      const px = -dy, py = dx; // perpendicular
+      return `M ${tailX} ${tailY} L ${tipX} ${tipY} M ${tipX - dx * H + px * H} ${tipY - dy * H + py * H} L ${tipX} ${tipY} L ${tipX - dx * H - px * H} ${tipY - dy * H - py * H}`;
+    }
+    function draw() {
+      root.querySelectorAll<SVGGElement>('[data-cell]').forEach((g) => {
+        const [x, y] = (g.dataset.cell || '0,0').split(',').map(Number);
+        const k = g.dataset.kind as Kind;
+        const rect = g.querySelector('rect') as SVGRectElement;
+        if (k === 'W') return;
+        if (k === 'G') { rect.style.fill = shade(1); return; }
+        if (k === 'P') { rect.style.fill = shade(-1); return; }
+        const q = Q[x][y];
+        const v = Math.max(...q);
+        rect.style.fill = q.every((n) => n === 0) ? '' : shade(v);
+        const arrow = g.querySelector('.arrow') as SVGPathElement | null;
+        if (arrow) arrow.setAttribute('d', q.every((n) => n === 0) ? '' : arrowPath(x, y, q.indexOf(v)));
+      });
+      agent.setAttribute('cx', String(pos[0] * C + C / 2));
+      agent.setAttribute('cy', String(pos[1] * C + C / 2));
+      $('[data-episodes]').textContent = String(episodes);
+      $('[data-wins]').textContent = `${wins.filter(Boolean).length} of ${Math.max(wins.length, 0)}`;
+      $('[data-last]').textContent = returns.length ? returns[returns.length - 1].toFixed(2) : '0.00';
+      const pts = returns.map((r, i) => {
+        const xx = returns.length > 1 ? (i / (returns.length - 1)) * 300 : 0;
+        const yy = 16 - Math.max(-1.6, Math.min(1, r)) * 16; // 1 -> 0, 0 -> 16, -1.6 -> ~42
+        return `${xx.toFixed(1)},${yy.toFixed(1)}`;
+      }).join(' ');
+      ($('[data-spark]') as unknown as SVGPolylineElement).setAttribute('points', pts);
+    }
+
+    const runBtn = $('[data-run]');
+    function stopRun() { if (timer !== null) { clearInterval(timer); timer = null; } runBtn.setAttribute('aria-pressed', 'false'); runBtn.textContent = 'Run'; }
+    runBtn.addEventListener('click', () => {
+      if (timer !== null) { stopRun(); return; }
+      runBtn.setAttribute('aria-pressed', 'true'); runBtn.textContent = 'Pause';
+      timer = window.setInterval(() => { step(); draw(); }, 70);
+    });
+    $('[data-fast]').addEventListener('click', () => {
+      const target = episodes + 50;
+      let guard = 0;
+      while (episodes < target && guard++ < 50 * MAX_STEPS + 10) step();
+      draw();
+    });
+    $('[data-reset]').addEventListener('click', () => { stopRun(); reset(); });
+
+    // Pause when the figure scrolls out of view, so it doesn't run unseen.
+    new IntersectionObserver((entries) => { if (!entries[0].isIntersecting) stopRun(); }).observe(root);
+    reset();
+  }
+
+  function initAll() { document.querySelectorAll<HTMLElement>('[data-gridlearner]').forEach(initGridLearner); }
+  document.addEventListener('DOMContentLoaded', initAll);
+  document.addEventListener('astro:page-load', initAll);
+</script>

@@ -27,6 +27,8 @@ import CodeCopyButton from '../components/CodeCopyButton.astro';
 import ConfidenceRating from '../components/ConfidenceRating.astro';
 import ImportanceRating from '../components/ImportanceRating.astro';
 import { siteConfig } from '../config';
+import { getCollection } from 'astro:content';
+import studyTracks from '../study-tracks.json';
 import type { Post, GrowthStatus } from '../types';
 import type { GrowthMetrics } from '../utils/growth';
 
@@ -39,6 +41,25 @@ export interface Props {
 
 const { post, headings = [], effectiveGrowth, growthMetrics } = Astro.props;
 const { title, description, growth, planted, lastTended, tags, image, imageAlt, confidence, importance } = post.data;
+
+// Study site: curriculum fields from scripts/sync-study.mjs
+const { lectureNumber, status, trackName, track, time, prereqs = [], prereqsText, checkpoint, exercise, exerciseName, videos = [], prev, next, source } = post.data;
+const isLecture = Boolean(lectureNumber);
+const lectureTitles = new Map((await getCollection('posts')).map((p) => [p.id, p.data.title]));
+const linkTo = (slug: string) => ({ href: `/posts/${slug}/`, title: lectureTitles.get(slug) || slug });
+const prevLecture = prev ? linkTo(prev) : null;
+const nextLecture = next ? linkTo(next) : null;
+// Render the small amount of markdown the checkpoint text uses: `code`, [text](url), **bold**.
+const inlineMd = (s: string) => s
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  .replace(/`([^`]+)`/g, '<code>$1</code>')
+  .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+  .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2">$1</a>');
+const statusNote: Record<string, string> = {
+  unreviewed: 'Unreviewed: no one has checked this end to end. Treat the math, code, and citations as unverified.',
+  reviewed: 'Reviewed: a person has read this end to end and stands behind it.',
+  'hand-written': 'Hand-written: a person wrote this.',
+};
 // Use effective growth if provided, otherwise fall back to manual growth
 const displayGrowth = effectiveGrowth || growth;
 
@@ -92,6 +113,12 @@ const jsonLd = {
     "@id": canonicalUrl.toString()
   }
 };
+
+// Study site: roadmap design bits
+const allPosts = await getCollection('posts');
+const totalLectures = allPosts.filter((p) => p.data.lectureNumber).length;
+const trackColor = studyTracks.find((t) => t.id === track)?.color ?? 'var(--yellow)';
+const displayTitle = isLecture ? title.replace(/^Lecture \d\d:\s*/, '') : title;
 ---
 
 <BaseLayout title={title} description={description} image={image}>
@@ -99,124 +126,106 @@ const jsonLd = {
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   <Header slot="header" />
 
-  <div class="max-w-5xl mx-auto px-4 py-8 sm:py-12">
-    <div class="lg:grid lg:grid-cols-[1fr_280px] lg:gap-8">
-      <!-- Main Content -->
+  <main class="bk">
+    <header class="bk-page bk-head">
+      {isLecture ? (
+        <p class="bk-label">
+          <span class="bk-swatch" style={`background: ${trackColor}`}></span>lecture {lectureNumber} of {totalLectures} · <a href={`/tracks/${track}/`} style="color: inherit">{trackName}</a>{time && ` · ${time}`}
+        </p>
+      ) : (
+        tags && tags.length > 0 && <p class="bk-label">{tags.join(' · ')}</p>
+      )}
+      <h1>{displayTitle}</h1>
+      {status && (
+        <p class="bk-status">
+          {status === 'unreviewed'
+            ? <><span class="bk-stamp">unreviewed draft</span>No one has checked this end to end. Treat the math, code, and citations as unverified.</>
+            : <><span class="bk-stamp ok">{status}</span>{statusNote[status] || ''}</>}
+          {source && <> <a href={source}>Source on GitHub</a>.</>}
+        </p>
+      )}
+      <p class="bk-meta" style="margin: 0">{tendedDate && <>Updated {tendedDate}. </>}About {readingTime} minutes to read.</p>
+    </header>
+
+    <div class="bk-article">
       <article>
-        <!-- Post Header -->
-        <header class="mb-8">
-          <!-- Growth indicator and dates -->
-          <div class="flex flex-wrap items-center gap-4 text-sm text-primary-600 dark:text-primary-400 mb-4">
-            {siteConfig.garden.showGrowthStatus && (
-              <GrowthIndicator status={displayGrowth} showLabel />
-            )}
+        {isLecture && (prereqs.length > 0 || checkpoint || exercise || videos.length > 0) && (
+          <section class="bk-box bk-facts-box" aria-label="Before you start">
+            <dl>
+              <div>
+                <dt>read first</dt>
+                <dd>
+                  {prereqs.length > 0
+                    ? prereqs.map((slug, i) => <>{i > 0 && ', '}<a href={linkTo(slug).href}>{linkTo(slug).title}</a></>)
+                    : 'Nothing: this is a starting point.'}
+                  {prereqsText && /[a-z]/i.test(prereqsText.replace(/none/i, '')) && <span style="color: var(--muted)"> ({prereqsText})</span>}
+                </dd>
+              </div>
+              {checkpoint && (
+                <div>
+                  <dt>checkpoint, for when you finish</dt>
+                  <dd set:html={inlineMd(checkpoint)} />
+                </div>
+              )}
+              {exercise && (
+                <div>
+                  <dt>exercise</dt>
+                  <dd><a href={exercise}>{exerciseName}</a>, with a starter file, pytest tests, graduated hints, and a reference solution.</dd>
+                </div>
+              )}
+              {videos.length > 0 && (
+                <div>
+                  <dt>on video</dt>
+                  <dd>
+                    <div class="watch">
+                      {videos.map((v) => (
+                        <a href={`https://www.youtube.com/watch?v=${v.id}`}>
+                          <img src={`https://i.ytimg.com/vi/${v.id}/mqdefault.jpg`} alt="" loading="lazy" width="320" height="180" />
+                          {v.title}
+                        </a>
+                      ))}
+                    </div>
+                  </dd>
+                </div>
+              )}
+            </dl>
+          </section>
+        )}
 
-            {siteConfig.garden.showPlantedDate && (
-              <span class="flex items-center gap-1">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M12 2v6m0 0a4 4 0 100 8 4 4 0 000-8z"/>
-                  <path d="M12 22v-6"/>
-                </svg>
-                Planted {plantedDate}
-              </span>
-            )}
-
-            {siteConfig.garden.showLastTended && tendedDate && (
-              <span class="flex items-center gap-1">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M12 8v4l3 3"/>
-                  <circle cx="12" cy="12" r="10"/>
-                </svg>
-                Tended {tendedDate}
-              </span>
-            )}
-
-            {siteConfig.posts.showReadingTime && (
-              <span class="flex items-center gap-1">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-                </svg>
-                {readingTime} min read
-              </span>
-            )}
-
-            {confidence && (
-              <ConfidenceRating level={confidence} />
-            )}
-
-            {importance && (
-              <ImportanceRating level={importance} />
-            )}
-          </div>
-
-          <!-- Title -->
-          <h1 class="text-3xl sm:text-4xl font-bold text-primary-900 dark:text-primary-100 mb-4">
-            {title}
-          </h1>
-
-          <!-- Description -->
-          {description && (
-            <p class="text-lg text-primary-600 dark:text-primary-400 mb-4">
-              {description}
-            </p>
-          )}
-
-          <!-- Tags -->
-          {siteConfig.posts.showTags && tags && tags.length > 0 && (
-            <Tags tags={tags} />
-          )}
-        </header>
-
-        <!-- Cover Image -->
         {image && (
-          <figure class="mb-8 -mx-4 sm:mx-0">
-            <img
-              src={image}
-              alt={imageAlt || title}
-              class="w-full rounded-lg sm:rounded-xl"
-            />
+          <figure style="margin: 0 0 2rem">
+            <img src={image} alt={imageAlt || title} style="width: 100%" />
           </figure>
         )}
 
-        <!-- Post Content -->
         <div class="prose-mycelium">
           <slot />
         </div>
         <CodeCopyButton />
 
-        <!-- Backlinks section -->
-        <LinkedMentions currentSlug={post.id} />
+        {isLecture && (prevLecture || nextLecture) && (
+          <nav class="bk-prevnext" aria-label="Curriculum order">
+            {prevLecture && <a href={prevLecture.href}><small>previous</small><b>{prevLecture.title}</b></a>}
+            {nextLecture
+              ? <a class="next" href={nextLecture.href}><small>next</small><b>{nextLecture.title}</b></a>
+              : <a class="next" href="/curriculum/"><small>that was the last one</small><b>Back to the curriculum</b></a>}
+          </nav>
+        )}
 
-        <!-- Comments -->
+        <LinkedMentions currentSlug={post.id} />
         <Giscus />
       </article>
 
-      <!-- Sidebar -->
-      <aside class="hidden lg:block">
-        <div class="sticky top-24 space-y-6 max-h-[calc(100vh-8rem)] overflow-y-auto">
-          <!-- Table of Contents -->
-          {siteConfig.features.tableOfContents && headings.length > 0 && (
-            <TableOfContents headings={headings} />
-          )}
-
-          <!-- Local Graph -->
-          {siteConfig.features.localGraph && (
-            <div>
-              <h3 class="text-sm font-medium text-primary-600 dark:text-primary-400 mb-3">
-                Connections
-              </h3>
-              <LocalGraph currentSlug={post.id} />
-            </div>
-          )}
+      <aside>
+        <div class="sticky-box">
+          {siteConfig.features.tableOfContents && headings.length > 0 && <TableOfContents headings={headings} />}
         </div>
       </aside>
     </div>
-  </div>
+  </main>
 
   <Footer slot="footer" />
 
-  <!-- Gwern-style features -->
   {siteConfig.features.linkPreviews && <LinkPreview />}
   {siteConfig.features.imageLightbox && <ImageLightbox />}
 </BaseLayout>

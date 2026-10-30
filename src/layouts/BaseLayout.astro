@@ -14,6 +14,19 @@ import { siteConfig } from '../config';
 import CommandPalette from '../components/CommandPalette.astro';
 import GlobalGraph from '../components/GlobalGraph.astro';
 import '../styles/global.css';
+// Study site: typeset like a book. Alegreya for text and headings, Alegreya SC
+// for small-caps labels, Kalam for the few handwritten margin notes; code uses
+// the system monospace.
+import '@fontsource/alegreya/400.css';
+import '@fontsource/alegreya/400-italic.css';
+import '@fontsource/alegreya/500.css';
+import '@fontsource/alegreya/700.css';
+import '@fontsource/alegreya/700-italic.css';
+import '@fontsource/alegreya/800.css';
+import '@fontsource/alegreya-sc/500.css';
+import '@fontsource/alegreya-sc/700.css';
+import '@fontsource/kalam/400.css';
+import '../styles/roadmap.css';
 
 export interface Props {
   title?: string;
@@ -84,14 +97,9 @@ const ogImage = image
     <!-- Dark mode initialization (prevent flash) -->
     <script is:inline>
       (function() {
-        const theme = localStorage.getItem('theme');
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-        if (theme === 'dark' || (!theme && prefersDark)) {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
+        // Study site: the roadmap design has its own dark sections, so the page
+        // itself is always light.
+        document.documentElement.classList.remove('dark');
       })();
     </script>
 

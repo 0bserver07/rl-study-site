@@ -16,27 +16,103 @@ export async function getStaticPaths() {
 
 const { page } = Astro.props;
 const { Content } = await render(page);
+
+// Study site: a handwritten kicker per page, and more room for the curriculum's tables.
+const kickers: Record<string, string> = {
+  curriculum: 'every lecture, in order',
+  watch: 'the lectures, on video',
+  about: 'who made this',
+  notes: 'hand-written, 2017',
+  library: 'everything, in one place',
+  exercises: 'write the code',
+  homework: 'problem sets',
+  'cheat-sheets': 'quick reference',
+  diagrams: 'figures',
+  reading: 'papers',
+  changelog: 'what changed',
+  releases: 'versions of this site',
+  agents: 'for AI tutors',
+};
+const prefixKickers: [string, string][] = [
+  ['notes/', 'hand-written, 2017'], ['exercises/', 'exercise'], ['homework/', 'homework'],
+  ['cheat-sheets/', 'cheat sheet'], ['reading/', 'reading list'],
+];
+const kicker = kickers[page.id] ?? prefixKickers.find(([pre]) => page.id.startsWith(pre))?.[1] ?? '';
+const wide = ['curriculum', 'watch', 'diagrams', 'library'].includes(page.id) || page.id.startsWith('cheat-sheets/') || page.id.endsWith('/papers');
 ---
 
 <BaseLayout title={page.data.title} description={page.data.description}>
   <Header slot="header" />
-  <div class="container mx-auto px-4 py-12 max-w-4xl">
-    <article>
-      <header class="mb-8">
-        <h1 class="text-4xl font-bold text-primary-900 dark:text-primary-100">
-          {page.data.title}
-        </h1>
-        {page.data.description && (
-          <p class="text-xl text-primary-600 dark:text-primary-400 mt-4">
-            {page.data.description}
-          </p>
-        )}
-      </header>
 
-      <div class="prose prose-lg dark:prose-invert max-w-none">
-        <Content />
-      </div>
-    </article>
-  </div>
+  <main class="bk">
+    <header class="bk-page bk-head" style={wide ? 'max-width: 56rem' : undefined}>
+      {kicker && <p class="bk-label">{kicker}</p>}
+      <h1>{page.data.title}</h1>
+      {page.data.description && <p class="bk-dek" style="margin: 0">{page.data.description}</p>}
+    </header>
+
+    <div class="bk-article" style={`grid-template-columns: minmax(0, ${wide ? '56rem' : '42rem'})`}>
+      <article>
+        <div class="prose-mycelium">
+          <Content />
+        </div>
+      </article>
+    </div>
+  </main>
+
   <Footer slot="footer" />
 </BaseLayout>
+
+<!-- Mermaid diagram rendering -->
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    const mermaidContainers = document.querySelectorAll('.mermaid');
+    if (mermaidContainers.length > 0) {
+      // @ts-ignore - Dynamic import
+      const mermaid = await import('https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs');
+
+      // Configure mermaid
+      mermaid.default.initialize({
+        startOnLoad: false,
+        theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
+        securityLevel: 'loose',
+        fontFamily: 'inherit',
+      });
+
+      // Render all mermaid diagrams
+      mermaid.default.run({
+        nodes: mermaidContainers,
+      });
+
+      // Re-render on theme change
+      window.addEventListener('themechange', (e: CustomEvent) => {
+        mermaid.default.initialize({
+          startOnLoad: false,
+          theme: e.detail.dark ? 'dark' : 'default',
+          securityLevel: 'loose',
+          fontFamily: 'inherit',
+        });
+
+        // Need to reset and re-render
+        mermaidContainers.forEach((container) => {
+          const svg = container.querySelector('svg');
+          if (svg) {
+            const original = container.getAttribute('data-original');
+            if (original) {
+              container.innerHTML = original;
+            }
+          }
+        });
+
+        mermaid.default.run({
+          nodes: mermaidContainers,
+        });
+      });
+
+      // Store original content for re-rendering
+      mermaidContainers.forEach((container) => {
+        container.setAttribute('data-original', container.innerHTML);
+      });
+    }
+  });
+</script>

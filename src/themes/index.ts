@@ -277,7 +277,44 @@ export const themes: Record<string, Theme> = {
       },
     },
   },
+  // Study site: warm paper and ink, with a blue-ink accent.
+  chalk: {
+    name: 'chalk',
+    label: 'Paper',
+    colors: {
+      primary: {
+        '50': '251 248 241',
+        '100': '243 238 226',
+        '200': '220 212 195',
+        '300': '196 186 168',
+        '400': '160 150 133',
+        '500': '123 116 104',
+        '600': '98 92 82',
+        '700': '77 72 63',
+        '800': '58 54 47',
+        '900': '35 32 27',
+        '950': '24 22 18',
+      },
+      accent: {
+        '50': '238 243 250',
+        '100': '216 228 244',
+        '200': '178 200 232',
+        '300': '130 165 214',
+        '400': '80 125 190',
+        '500': '45 95 160',
+        '600': '31 78 140',
+        '700': '26 64 115',
+        '800': '22 52 93',
+        '900': '19 43 76',
+        '950': '12 27 48',
+      },
+      bg: {
+        light: '251 248 241',
+        dark: '24 22 18',
+      },
+    },
+  },
 };
 
 export const themeNames = Object.keys(themes);
-export const defaultTheme = 'sage';
+export const defaultTheme = 'chalk'; // study site: chalkboard and paper

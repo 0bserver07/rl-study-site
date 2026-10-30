@@ -5,12 +5,7 @@
  */
 
 /* Import fonts - must come before @tailwind directives */
-@import '@fontsource/inter/400.css' layer(base);
-@import '@fontsource/inter/500.css' layer(base);
-@import '@fontsource/inter/600.css' layer(base);
-@import '@fontsource/inter/700.css' layer(base);
-@import '@fontsource/jetbrains-mono/400.css' layer(base);
-@import '@fontsource/jetbrains-mono/500.css' layer(base);
+/* Study site: Inter and JetBrains Mono are not loaded; fonts come from BaseLayout. */
 
 @import 'tailwindcss';
 
@@ -221,35 +216,33 @@
    ============================================================================ */
 
   :root {
-    /* Primary - Sage greens (muted, therapeutic tones) */
-    --color-primary-50: 247 250 247; /* #f7faf7 - barely there green */
-    --color-primary-100: 236 243 236; /* #ecf3ec - soft sage mist */
-    --color-primary-200: 214 228 214; /* #d6e4d6 - light sage */
-    --color-primary-300: 181 204 181; /* #b5ccb5 - gentle sage */
-    --color-primary-400: 143 176 143; /* #8fb08f - sage */
-    --color-primary-500: 111 148 111; /* #6f946f - balanced sage */
-    --color-primary-600: 88 124 88; /* #587c58 - deep sage */
-    --color-primary-700: 71 100 71; /* #476447 - forest sage */
-    --color-primary-800: 56 79 56; /* #384f38 - dark sage */
-    --color-primary-900: 44 62 44; /* #2c3e2c - deep forest */
-    --color-primary-950: 26 38 26; /* #1a261a - night forest */
+    /* Study site: defaults match the 'chalk' theme (src/themes/index.ts). */
+    --color-primary-50: 251 248 241;
+    --color-primary-100: 243 238 226;
+    --color-primary-200: 220 212 195;
+    --color-primary-300: 196 186 168;
+    --color-primary-400: 160 150 133;
+    --color-primary-500: 123 116 104;
+    --color-primary-600: 98 92 82;
+    --color-primary-700: 77 72 63;
+    --color-primary-800: 58 54 47;
+    --color-primary-900: 35 32 27;
+    --color-primary-950: 24 22 18;
 
-    /* Accent - Warm terracotta (grounding, earthy) */
-    --color-accent-50: 253 250 247; /* #fdfaf7 */
-    --color-accent-100: 250 241 235; /* #faf1eb */
-    --color-accent-200: 245 224 209; /* #f5e0d1 */
-    --color-accent-300: 235 198 171; /* #ebc6ab */
-    --color-accent-400: 217 166 130; /* #d9a682 */
-    --color-accent-500: 194 139 97; /* #c28b61 */
-    --color-accent-600: 166 112 74; /* #a6704a */
-    --color-accent-700: 138 90 60; /* #8a5a3c */
-    --color-accent-800: 112 74 51; /* #704a33 */
-    --color-accent-900: 92 62 44; /* #5c3e2c */
-    --color-accent-950: 51 33 23; /* #332117 */
+    --color-accent-50: 238 243 250;
+    --color-accent-100: 216 228 244;
+    --color-accent-200: 178 200 232;
+    --color-accent-300: 130 165 214;
+    --color-accent-400: 80 125 190;
+    --color-accent-500: 45 95 160;
+    --color-accent-600: 31 78 140;
+    --color-accent-700: 26 64 115;
+    --color-accent-800: 22 52 93;
+    --color-accent-900: 19 43 76;
+    --color-accent-950: 12 27 48;
 
-    /* Background for light mode - warm paper tones */
-    --bg-primary: 252 251 249; /* #fcfbf9 - warm white */
-    --bg-secondary: 247 246 243; /* #f7f6f3 - light parchment */
+    --bg-primary: 251 248 241;
+    --bg-secondary: 251 248 241;
     --text-primary: var(--color-primary-900);
     --text-secondary: var(--color-primary-700);
   }
@@ -744,3 +737,77 @@ details.collapsible details.collapsible {
 }
 
 /* Theme update test - Wed Dec 31 19:22:13 EST 2025 */
+
+/* Study site: review-status note on lecture pages */
+.study-status-unreviewed {
+  background: #fff6db;
+  color: #5c4200;
+  border: 1px solid #ecd58f;
+}
+.dark .study-status-unreviewed {
+  background: rgba(212, 160, 23, 0.12);
+  color: #f0d27c;
+  border-color: rgba(212, 160, 23, 0.35);
+}
+.study-status-reviewed,
+.study-status-hand-written {
+  background: #e7f5ec;
+  color: #1d5631;
+  border: 1px solid #a8d8b7;
+}
+.dark .study-status-reviewed,
+.dark .study-status-hand-written {
+  background: rgba(63, 185, 80, 0.12);
+  color: #8fdca0;
+  border-color: rgba(63, 185, 80, 0.35);
+}
+.study-box code {
+  font-size: 0.9em;
+}
+
+/* Study site: no decorative backticks around inline code (typography plugin default) */
+.prose-mycelium code::before,
+.prose-mycelium code::after {
+  content: none !important;
+}
+
+/* Study site: videos (Watch page and the Watch box on lecture pages) */
+.video-embed {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  margin: 1rem 0;
+}
+.video-embed iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 0.75rem;
+}
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 0.75rem;
+  margin: 0.75rem 0 1.25rem;
+}
+.video-card {
+  display: block;
+  text-decoration: none !important;
+  color: inherit;
+}
+.video-card img {
+  width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 0 !important;
+}
+.video-card span {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+  line-height: 1.3;
+}
+.video-card:hover span {
+  text-decoration: underline;
+}

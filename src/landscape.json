@@ -1,0 +1,104 @@
+{
+  "intro": "Every family below is the same MDP. They differ in three answers: where the reward comes from, where the training data comes from, and how many steps pass before the reward arrives.",
+  "families": [
+    {
+      "track": "classical",
+      "name": "Classical RL",
+      "reward": "the environment",
+      "data": "fresh rollouts, or a replay buffer",
+      "steps": "many",
+      "groups": [
+        { "title": "value-based", "items": [["Q-learning, DQN", "03"]] },
+        { "title": "policy gradients", "items": [["REINFORCE", "02"], ["TRPO", "05"], ["PPO", "06"]] },
+        { "title": "actor-critic", "items": [["A2C", "04"], ["SAC, TD3", "07"]] },
+        { "title": "model-based", "items": [["PETS, MBPO", "08"], ["Dreamer, MuZero", "22"]] },
+        { "title": "beyond the basics", "items": [["RND", "20"], ["self-play", "21"], ["meta-RL", "32"], ["robotics", "33"]] }
+      ],
+      "takeaway": "env → state → reward → next state. That loop."
+    },
+    {
+      "track": "rlhf",
+      "name": "RLHF",
+      "reward": "people compare two outputs; a reward model learns from that (DPO keeps it implicit)",
+      "data": "fresh samples (PPO), or a fixed preference set (DPO)",
+      "steps": "one response",
+      "groups": [
+        { "title": "reward model", "items": [["Bradley-Terry on (chosen, rejected)", "09"]] },
+        { "title": "+ PPO", "items": [["InstructGPT, with KL to the reference", "10"]] },
+        { "title": "DPO and cousins", "items": [["DPO", "11"], ["IPO, KTO, ORPO, RRHF", "12"], ["SimPO", "27"]] },
+        { "title": "iterate it", "items": [["online and iterative DPO", "17"]] },
+        { "title": "over-optimization", "items": [["the RM gets gamed; KL limits it", "28"]] }
+      ],
+      "takeaway": "A learned reward stands in for the environment."
+    },
+    {
+      "track": "rlaif",
+      "name": "RLAIF",
+      "reward": "an LLM judge, or a written constitution",
+      "data": "fresh samples, or a fixed set the judge labelled",
+      "steps": "one response",
+      "groups": [
+        { "title": "Constitutional AI", "items": [["critique, then revise against principles", "14"]] },
+        { "title": "LLM-as-judge", "items": [["pairwise scoring; watch for its biases", "27"]] },
+        { "title": "self-rewarding", "items": [["the model judges itself; SPIN", "14"]] },
+        { "title": "AI feedback at scale", "items": [["UltraFeedback, OAIF", "27"]] },
+        { "title": "self-improvement loops", "items": [["STaR, ReST", "34"]] }
+      ],
+      "takeaway": "Replace the human labeler with an AI."
+    },
+    {
+      "track": "rlvr",
+      "name": "RLVR and reasoning",
+      "reward": "a program that checks the answer",
+      "data": "fresh samples",
+      "steps": "one response, often a long one",
+      "groups": [
+        { "title": "GRPO", "items": [["group-relative advantage, no value network", "15"]] },
+        { "title": "DeepSeek-R1", "items": [["R1-Zero: pure RL on a base model", "15"], ["the full R1 recipe", "26"]] },
+        { "title": "o1-style scaling", "items": [["RL on chain-of-thought, plus inference compute", "15"]] },
+        { "title": "process vs outcome", "items": [["step rewards vs final rewards", "23"]] },
+        { "title": "code: run the tests", "items": [["CodeRL (tests as reward), AlphaCode (tests as filter)", "13"]] },
+        { "title": "verifier design", "items": [["how verifiers get gamed", "28"]] }
+      ],
+      "takeaway": "No learned reward model: a verifier is the reward."
+    },
+    {
+      "track": "agentic",
+      "name": "Agentic RL",
+      "reward": "whether the task got done, often checked by tests",
+      "data": "fresh multi-turn rollouts",
+      "steps": "many turns",
+      "groups": [
+        { "title": "the loop", "items": [["read, plan, act, check, repeat", "16"]] },
+        { "title": "scaffold", "items": [["ReAct, Toolformer; RL fine-tunes inside it", "16"]] },
+        { "title": "the environment is the reward", "items": [["tests pass = +1, task done = +1", "16"]] },
+        { "title": "browsers and screens", "items": [["WebGPT, WebArena, OSWorld", "24"]] },
+        { "title": "credit assignment", "items": [["long horizons make it hard", "25"]] }
+      ],
+      "takeaway": "Long horizons make credit assignment hard."
+    },
+    {
+      "track": "offline",
+      "name": "Offline RL",
+      "reward": "already logged in the dataset",
+      "data": "a fixed dataset; nothing new is collected",
+      "steps": "many",
+      "groups": [
+        { "title": "policy constraints", "items": [["BCQ, BEAR: stay near the data", "19"]] },
+        { "title": "value pessimism", "items": [["CQL: penalize out-of-distribution Q-values", "19"]] },
+        { "title": "implicit Q", "items": [["IQL: never query actions outside the data", "19"]] },
+        { "title": "sequence model", "items": [["Decision Transformer", "19"]] },
+        { "title": "imitate the data", "items": [["BC, SFT, R1-distill (no reward used)", "18"]] }
+      ],
+      "takeaway": "DPO is offline RL on preference data."
+    }
+  ],
+  "bridge": {
+    "text": "Iterate it on-policy: online and iterative preference optimization bridges offline DPO and online PPO/GRPO.",
+    "lecture": "17"
+  },
+  "systems": {
+    "text": "Underneath all of it",
+    "items": [["distributed training", "29"], ["inference", "30"], ["hardware", "31"]]
+  }
+}

@@ -23,7 +23,9 @@ const DRAFTS_DIR = './drafts';
 
 // Posts Collection - Main blog/garden content
 const postsCollection = defineCollection({
-  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/posts' }),
+  // Study site: lectures are generated from the study/ submodule by
+  // scripts/sync-study.mjs (the theme's sample posts stay in src/content/posts).
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/generated/lectures' }),
   schema: z.object({
     title: z.string(),
     description: z.string().optional(),
@@ -47,12 +49,30 @@ const postsCollection = defineCollection({
     confidence: confidenceEnum,           // How confident are you in this content?
     importance: importanceLevel,          // How important is this (1-5 stars)?
     dropcap: z.union([z.boolean(), z.literal('accent')]).optional(), // Enable drop cap
+    // Study site: curriculum fields written by scripts/sync-study.mjs
+    lectureNumber: z.string().optional(),
+    status: z.enum(['hand-written', 'reviewed', 'unreviewed']).optional(),
+    lastReviewed: z.string().optional(),
+    track: z.string().optional(),
+    trackName: z.string().optional(),
+    order: z.number().optional(),
+    block: z.string().optional(),
+    time: z.string().optional(),
+    prereqs: z.array(z.string()).optional(),
+    prereqsText: z.string().optional(),
+    checkpoint: z.string().optional(),
+    exercise: z.string().optional(),
+    exerciseName: z.string().optional(),
+    videos: z.array(z.object({ id: z.string(), title: z.string() })).optional(),
+    prev: z.string().optional(),
+    next: z.string().optional(),
+    source: z.string().optional(),
   }),
 });
 
 // Pages Collection - Static pages (About, Contact, etc.)
 const pagesCollection = defineCollection({
-  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/pages' }),
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/generated/pages' }),
   schema: z.object({
     title: z.string(),
     description: z.string().optional(),
@@ -66,7 +86,7 @@ const pagesCollection = defineCollection({
 
 // Projects Collection - Portfolio/showcase
 const projectsCollection = defineCollection({
-  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/projects' }),
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/generated/projects' }),
   schema: z.object({
     title: z.string(),
     description: z.string().optional(),
@@ -92,7 +112,7 @@ const projectsCollection = defineCollection({
 
 // Documentation Collection - Technical docs
 const docsCollection = defineCollection({
-  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/docs' }),
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/generated/docs' }),
   schema: z.object({
     title: z.string(),
     description: z.string().optional(),

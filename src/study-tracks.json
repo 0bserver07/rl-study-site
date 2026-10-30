@@ -1,0 +1,100 @@
+[
+  {
+    "id": "foundations",
+    "name": "Foundations",
+    "blurb": "MDPs, value functions, policy gradients, actor-critic, trust regions, PPO. Every other track builds on these.",
+    "color": "#c47a2c",
+    "lectures": [
+      "01",
+      "02",
+      "03",
+      "04",
+      "05",
+      "06"
+    ]
+  },
+  {
+    "id": "classical",
+    "name": "Classical RL",
+    "blurb": "The environment gives the reward. Off-policy and model-based methods, exploration, multi-agent RL, world models, meta-RL, robotics.",
+    "color": "#4a6fa5",
+    "lectures": [
+      "07",
+      "08",
+      "20",
+      "21",
+      "22",
+      "32",
+      "33"
+    ]
+  },
+  {
+    "id": "rlhf",
+    "name": "RLHF",
+    "blurb": "People compare two outputs, a reward model learns from the comparisons, and PPO, DPO, and their relatives optimize against it.",
+    "color": "#b08414",
+    "lectures": [
+      "09",
+      "10",
+      "11",
+      "12",
+      "17"
+    ]
+  },
+  {
+    "id": "rlaif",
+    "name": "RLAIF",
+    "blurb": "An LLM judge or a written constitution stands in for the human labeler.",
+    "color": "#85699f",
+    "lectures": [
+      "14",
+      "27",
+      "34"
+    ]
+  },
+  {
+    "id": "rlvr",
+    "name": "RLVR and reasoning",
+    "blurb": "A checker decides: the answer matches, the tests pass. Reasoning models, process vs outcome rewards, and how verifiers get gamed.",
+    "color": "#3f8a4f",
+    "lectures": [
+      "13",
+      "15",
+      "23",
+      "26",
+      "28"
+    ]
+  },
+  {
+    "id": "agentic",
+    "name": "Agentic RL",
+    "blurb": "Multi-step tasks with tools, browsers, and code. The reward usually arrives at the end, so credit assignment gets hard.",
+    "color": "#5b8c75",
+    "lectures": [
+      "16",
+      "24",
+      "25"
+    ]
+  },
+  {
+    "id": "offline",
+    "name": "Offline RL",
+    "blurb": "Learning from a fixed dataset with no new interaction, including imitation and distillation.",
+    "color": "#6b7480",
+    "lectures": [
+      "18",
+      "19"
+    ]
+  },
+  {
+    "id": "systems",
+    "name": "Systems",
+    "blurb": "How LLM-RL training runs: distributed rollouts and learners, inference engines, hardware.",
+    "color": "#ad4d77",
+    "lectures": [
+      "29",
+      "30",
+      "31"
+    ]
+  }
+]

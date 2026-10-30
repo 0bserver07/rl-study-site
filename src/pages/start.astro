@@ -1,0 +1,119 @@
+---
+/**
+ * Start here: what to know first (with a self-check), how long it takes
+ * (the planner), week one, and what to do when stuck.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import StudyPlanner from '../components/roadmap/StudyPlanner.astro';
+import study from '../generated/study.json';
+
+const byNum = new Map(study.lectures.map((l) => [l.num, l]));
+const exerciseUrl = (name: string) => study.exercises.find((e) => e.name === name)?.url ?? '/exercises/';
+const silver = study.videoCourses.find((c) => c.id === 'silver');
+const ready = [
+  'I can take a gradient of a function of several variables, using the chain rule.',
+  'I know what an expectation is and can compute one for a small discrete distribution.',
+  'I can read the definition of KL divergence and say what it measures.',
+  'I can multiply a matrix by a vector without looking it up.',
+  'I can write a PyTorch training loop: model, loss, backward, optimizer step.',
+  'I can install a Python package and run pytest from a terminal.',
+];
+---
+
+<BaseLayout title="Start here" description="What to know before lecture 01, how long the whole thing takes, and a plan for the first week.">
+  <Header slot="header" />
+
+  <main class="bk">
+    <header class="bk-page bk-head">
+      <p class="bk-label">start here</p>
+      <h1>Before you start</h1>
+      <p class="bk-dek" style="margin: 0">What to know before lecture 01, how long the whole thing takes, and a plan for the first week.</p>
+    </header>
+
+    <section class="bk-page" id="prerequisites">
+      <h2><span class="bk-secnum">1</span>What to know first</h2>
+      <p>
+        The lectures assume some math and some Python: calculus (derivatives, the chain rule, gradients), probability (expectations, distributions, KL divergence), and basic linear algebra;
+        Python at an intermediate level, PyTorch basics, and NumPy.
+      </p>
+      <p>
+        For the exercises you need Python 3.10+, PyTorch, NumPy, Gymnasium, and pytest. A laptop is enough for everything through lecture 08.
+        The language-model lectures describe full-scale training; you can follow the code without running it at scale.
+      </p>
+      <div class="bk-box" style="margin-top: 1.5rem" id="ready-card">
+        <p class="bk-label">before lecture 01</p>
+        <ul class="bk-check">
+          {ready.map((r, i) => (
+            <li><label><input type="checkbox" data-ready={i} /> <span>{r}</span></label></li>
+          ))}
+        </ul>
+        <p class="bk-meta" style="margin: 0.8rem 0 0" data-ready-note>0 of {ready.length} ticked. This browser remembers.</p>
+      </div>
+    </section>
+
+    <section class="bk-page" id="plan" style="margin-top: 4rem">
+      <h2><span class="bk-secnum">2</span>How long it takes</h2>
+      <p>
+        The <a href="/curriculum/">curriculum</a> gives a time estimate for every lecture. The planner adds about {study.exerciseHours} hours per exercise
+        and puts the tracks end to end. Every track sits on Foundations; after that you can take the tracks in the order you need them.
+      </p>
+    </section>
+    <figure class="bk-page">
+      <StudyPlanner />
+      <figcaption>
+        <b>Figure 1.</b> The tracks laid end to end at your pace. Estimates are the curriculum's time per lecture plus about {study.exerciseHours} hours per exercise; some lectures give their own, longer estimates.
+      </figcaption>
+    </figure>
+
+    <section class="bk-page" id="week-one" style="margin-top: 4rem">
+      <h2><span class="bk-secnum">3</span>Week one</h2>
+      <ol style="padding-left: 1.3rem; display: grid; gap: 0.5rem; margin: 0">
+        <li>Set up Python 3.10+ and run <code>pip install -r exercises/requirements.txt</code> (PyTorch, NumPy, Gymnasium, pytest).</li>
+        <li>Read <a href={`/posts/${byNum.get('01')!.slug}/`}>lecture 01</a> and watch David Silver's lectures 2 and 3{silver ? <> (<a href={`https://www.youtube.com/watch?v=${silver.videos![1].id}`}>MDPs</a>, <a href={`https://www.youtube.com/watch?v=${silver.videos![2].id}`}>dynamic programming</a>)</> : ''}.</li>
+        <li>Do <a href={exerciseUrl('01-mdps')}>01-mdps</a>: value iteration on a gridworld. Get the tests green.</li>
+        <li>Read <a href={`/posts/${byNum.get('02')!.slug}/`}>lecture 02</a> and do <a href={exerciseUrl('02-policy-gradients')}>02-policy-gradients</a>: REINFORCE on CartPole.</li>
+        <li>At the end of the week, close everything and do the checkpoints for 01 and 02 from memory: write both Bellman equations, and derive ∇J = E[∇ log π · R].</li>
+      </ol>
+    </section>
+
+    <section class="bk-page" id="stuck" style="margin-top: 4rem">
+      <h2><span class="bk-secnum">4</span>Stuck?</h2>
+      <p>
+        Every exercise has graduated hints and a reference solution. Take the next hint only when you are stuck, and look at the solution only when you decide to.
+      </p>
+      <p>
+        Working with an AI tutor such as Claude Code or Codex? Point it at <a href="/agents/">AGENTS.md</a>.
+        It should have you edit <code>starter.py</code>, run <code>pytest exercises/NN-topic/</code>, and give you the next hint, not the solution.
+      </p>
+      <p>
+        If a lecture says something that looks wrong, check the cited paper. Fixing an error in an unreviewed lecture, and noting what was wrong, is the most useful kind of contribution here.
+      </p>
+    </section>
+  </main>
+
+  <Footer slot="footer" />
+</BaseLayout>
+
+<script>
+  // Self-check: remember the ticks in this browser.
+  function initReady() {
+    const boxes = Array.from(document.querySelectorAll<HTMLInputElement>('[data-ready]'));
+    const note = document.querySelector('[data-ready-note]');
+    if (!boxes.length || !note) return;
+    let saved: number[] = [];
+    try { saved = JSON.parse(localStorage.getItem('rm-ready') || '[]'); } catch {}
+    boxes.forEach((b) => { b.checked = saved.includes(Number(b.dataset.ready)); });
+    const update = () => {
+      const on = boxes.filter((b) => b.checked).map((b) => Number(b.dataset.ready));
+      try { localStorage.setItem('rm-ready', JSON.stringify(on)); } catch {}
+      note.textContent = on.length === boxes.length
+        ? `All ${boxes.length} ticked: you're ready for lecture 01.`
+        : `${on.length} of ${boxes.length} ticked. Anything left is worth an evening first.`;
+    };
+    boxes.forEach((b) => b.addEventListener('change', update));
+    update();
+  }
+  document.addEventListener('DOMContentLoaded', initReady);
+</script>

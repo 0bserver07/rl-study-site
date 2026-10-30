@@ -85,6 +85,7 @@ export type ThemeName =
   | 'minimal'     // Grayscale
   | 'nord'        // Nord color palette
   | 'rose'        // Pink/rose tones
+  | 'chalk'       // Study site: chalkboard green and paper
   ;
 
 export type GrowthStatus = 'seedling' | 'budding' | 'evergreen';
@@ -108,13 +109,13 @@ export interface SocialLink {
 export const siteConfig: MyceliumConfig = {
   // Site Identity
   site: 'https://example.com',
-  name: 'My Digital Garden',
-  gardener: 'Your Name',
-  description: 'A digital garden of interconnected thoughts and ideas.',
+  name: 'Study Reinforcement Learning',
+  gardener: 'Yad Konrad',
+  description: 'Notes, lectures, and exercises for learning reinforcement learning and how it is used to train language models.',
   language: 'en',
 
   // Appearance
-  theme: 'sage',
+  theme: 'chalk',
   fonts: {
     body: 'Inter',
     heading: 'Inter',
@@ -124,15 +125,16 @@ export const siteConfig: MyceliumConfig = {
   // Navigation
   navigation: {
     items: [
-      { title: 'Garden', url: '/posts/' },
-      { title: 'Projects', url: '/projects/' },
-      { title: 'Docs', url: '/docs/' },
+      { title: 'Home', url: '/' },
+      { title: 'Start', url: '/start/' },
+      { title: 'Library', url: '/library/' },
+      { title: 'Curriculum', url: '/curriculum/' },
+      { title: 'Watch', url: '/watch/' },
       { title: 'About', url: '/about/' },
     ],
     showSocialLinks: true,
     social: [
-      { title: 'GitHub', url: 'https://github.com', icon: 'github' },
-      { title: 'Twitter', url: 'https://twitter.com', icon: 'twitter' },
+      { title: 'GitHub', url: 'https://github.com/0bserver07/Study-Reinforcement-Learning', icon: 'github' },
     ],
   },
 
@@ -157,11 +159,11 @@ export const siteConfig: MyceliumConfig = {
 
   // Garden settings
   garden: {
-    showGrowthStatus: true,
+    showGrowthStatus: false, // study site shows review status instead
     defaultStatus: 'seedling',
-    showPlantedDate: true,
+    showPlantedDate: false,
     showLastTended: true,
-    autoGrowth: true, // Auto-calculate growth based on backlinks and series
+    autoGrowth: false, // Auto-calculate growth based on backlinks and series
   },
 
   // Posts settings

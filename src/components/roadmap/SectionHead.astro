@@ -1,0 +1,8 @@
+---
+/** Kicker, serif heading, and the two-colour chalk underline. */
+interface Props { kicker?: string; title: string; id?: string }
+const { kicker, title, id } = Astro.props;
+---
+{kicker && <p class="rm-kicker">{kicker}</p>}
+<h2 class="rm-h2" id={id}>{title}</h2>
+<div class="rm-chalkline" aria-hidden="true"><span></span><span></span></div>

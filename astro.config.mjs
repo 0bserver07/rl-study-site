@@ -7,9 +7,14 @@ import sitemap from '@astrojs/sitemap';
 // Remark/Rehype plugins
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
-import remarkMath from 'remark-math';
-import rehypeKatex from 'rehype-katex';
-import remarkDirective from 'remark-directive';
+// Study site: math plugins are off. The lectures write math as Unicode in code
+// blocks, and remark-math would read prices like "$1-$3" (lecture 27) as LaTeX.
+// import remarkMath from 'remark-math';
+// import rehypeKatex from 'rehype-katex';
+// Study site: directive plugins are off. remark-directive reads ":1712" in
+// "arXiv:1712.01815" as a directive and drops it, which mangled most arXiv IDs
+// in the lectures. The study content never uses ::: directives.
+// import remarkDirective from 'remark-directive';
 
 // Custom remark plugins
 import { remarkWikilinks } from './src/utils/remark-wikilinks.ts';
@@ -21,7 +26,7 @@ import { remarkMermaid } from './src/utils/remark-mermaid.ts';
 import { remarkGallery } from './src/utils/remark-gallery.ts';
 import { remarkSidenotes } from './src/utils/remark-sidenotes.ts';
 import { remarkDropcap } from './src/utils/remark-dropcap.ts';
-import { remarkCollapsible } from './src/utils/remark-collapsible.ts';
+// import { remarkCollapsible } from './src/utils/remark-collapsible.ts';
 
 // https://astro.build/config
 export default defineConfig({
@@ -47,19 +52,15 @@ export default defineConfig({
       remarkWikilinks,
       remarkCallouts,
       remarkHighlight,
-      remarkMath,  // LaTeX math syntax
       remarkSidenotes,  // Convert footnotes to sidenotes (Gwern-style)
-      remarkDirective,  // Parse ::: directive syntax (must come before collapsible)
-      remarkCollapsible,  // Collapsible sections with :::collapsible syntax
       [remarkDropcap, { enabled: false }],  // Drop caps (enable per-post with frontmatter)
     ],
     rehypePlugins: [
       rehypeSlug,
       [rehypeAutolinkHeadings, { behavior: 'wrap' }],
-      rehypeKatex,  // Render math with KaTeX
     ],
     shikiConfig: {
-      theme: 'min-dark',
+      theme: 'github-light', // study site: light code on paper
       wrap: true,
     },
   },

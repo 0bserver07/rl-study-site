@@ -1,0 +1,33 @@
+---
+/**
+ * LectureCard: one lecture as a row in a track's list, like an entry in a
+ * book's contents: number, title, time, the checkpoint, and the extras.
+ * (Still called a card; it was one in an earlier version of the design.)
+ */
+interface Lecture {
+  num: string; slug: string; title: string; time: string; status: string;
+  exercise: string; exerciseName: string; checkpoint: string; videos: { id: string; title: string }[];
+}
+interface Props { lecture: Lecture; color: string; first?: boolean }
+const { lecture: l, color, first = false } = Astro.props;
+
+const title = l.title.replace(/^Lecture \d\d:\s*/, '');
+// Checkpoints carry a little markdown: drop link syntax and backticks for the list.
+const checkpoint = l.checkpoint.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/`/g, '');
+const hasExtras = first || l.exercise || l.videos.length > 0 || l.status === 'reviewed';
+---
+
+<li class="bk-lecture" id={`lecture-${l.num}`} style={`--c: ${color}`}>
+  <span class="num">{l.num}</span>
+  <a class="title" href={`/posts/${l.slug}/`}>{title}</a>
+  <span class="time">{l.time}</span>
+  {checkpoint && <p class="cp"><i>checkpoint</i>{checkpoint}</p>}
+  {hasExtras && (
+    <p class="extra">
+      {l.exercise && <a href={l.exercise} title={l.exerciseName}>exercise</a>}
+      {l.videos.length > 0 && <a href={`https://www.youtube.com/watch?v=${l.videos[0].id}`} title={l.videos[0].title}>video</a>}
+      {l.status === 'reviewed' && <span style="color: var(--c-rlvr)">reviewed</span>}
+      {first && <span class="bk-note">← start here</span>}
+    </p>
+  )}
+</li>

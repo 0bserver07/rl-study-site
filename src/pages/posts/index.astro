@@ -23,9 +23,9 @@ const allPosts = await getCollection('posts', ({ data }) => {
   return import.meta.env.PROD ? !data.draft : true;
 });
 
-// Sort by planted date, newest first
+// Study site: lectures in curriculum order; anything else by planted date, newest first
 const allPostsSorted = allPosts.sort(
-  (a, b) => b.data.planted.valueOf() - a.data.planted.valueOf()
+  (a, b) => ((a.data.order ?? Infinity) - (b.data.order ?? Infinity)) || (b.data.planted.valueOf() - a.data.planted.valueOf())
 );
 
 // Calculate growth based on connections (backlinks + series)

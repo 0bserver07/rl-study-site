@@ -1,195 +1,260 @@
 ---
 /**
- * Homepage
+ * Homepage (study site): a hub, not an article.
  *
- * Landing page with:
- * - Hero section
- * - Recent posts
- * - Featured projects (if enabled)
+ * Opens with a Q-learning agent learning a gridworld in the browser, then
+ * walks one topic through the four steps (read, watch, build, check), lists
+ * the nine exercises, the eight tracks (each has its own page), the landscape
+ * map, the rules for studying, and an index of everything on the site.
+ * Onboarding (prerequisites, planner, week one, help) lives on /start/.
+ * Data: src/generated/study.json (written by scripts/sync-study.mjs).
  */
 
+import fs from 'node:fs';
+import path from 'node:path';
+import { Code } from 'astro:components';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import PostCard from '../components/PostCard.astro';
-import { getCollection } from 'astro:content';
-import { siteConfig } from '../config';
+import LandscapeMap from '../components/LandscapeMap.astro';
+import TrackMap from '../components/roadmap/TrackMap.astro';
+import GridLearner from '../components/roadmap/GridLearner.astro';
+import study from '../generated/study.json';
 
-// Get all posts, filter drafts in production
-const allPosts = await getCollection('posts', ({ data }) => {
-  return import.meta.env.PROD ? !data.draft : true;
-});
+const lectures = study.lectures;
+const byNum = new Map(lectures.map((l) => [l.num, l]));
+const colorOf = (num: string) => study.tracks.find((t) => t.id === byNum.get(num)?.track)?.color ?? 'var(--ink)';
+const totalHours = Math.round(study.totalHours);
+const totalTests = study.exercises.reduce((s, e) => s + (e.tests ?? 0), 0);
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'];
+const say = (n: number) => WORDS[n] ?? String(n);
 
-// Sort by planted date, newest first
-const recentPosts = allPosts
-  .sort((a, b) => b.data.planted.valueOf() - a.data.planted.valueOf())
-  .slice(0, 6);
+// The worked example: lecture 03 and its exercise, the same algorithm as Figure 1.
+const l01 = byNum.get('01')!;
+const l03 = byNum.get('03')!;
+const ex03 = study.exercises.find((e) => e.name === '03-q-learning')!;
+const silverFor03 = l03.videos.filter((v) => v.title.startsWith('David Silver, '));
+const qUpdate = (() => {
+  try {
+    const src = fs.readFileSync(path.join(process.cwd(), 'study', 'exercises', '03-q-learning', 'starter.py'), 'utf8');
+    return src.match(/def q_update[\s\S]*?raise NotImplementedError\("q_update"\)/)?.[0] ?? '';
+  } catch {
+    return '';
+  }
+})();
 
-// Get featured projects
-const allProjects = await getCollection('projects');
-const featuredProjects = allProjects
-  .filter((p) => p.data.featured)
-  .slice(0, 3);
+// The readme's landscape paragraphs use a little markdown: *em*, `code`, [text](url)
+const inlineMd = (s: string) => s
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  .replace(/`([^`]+)`/g, '<code>$1</code>')
+  .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2">$1</a>')
+  .replace(/\*([^*]+)\*/g, '<em>$1</em>');
+
+const rules = [
+  ['Write the code yourself.', 'Every exercise has a <code>starter.py</code> with TODOs and tests that only pass when the code is right. Fill it in before you look at anything else.'],
+  ['Take one hint at a time.', '<code>HINTS.md</code> goes from a nudge to nearly the answer. Read the next hint only when you are stuck on the current one.'],
+  ['Do the checkpoint with the book closed.', 'Every lecture ends with something to derive, write, or explain. Close the page first.'],
+  ['Passing is not understanding.', 'An exercise is done when the tests pass and you can say why your implementation works.'],
+  ['Debug small.', 'Use CartPole or a gridworld, where a run takes minutes. Broken RL code often runs without errors and just does not learn.'],
+  ['Come back a week later.', 'Redo an old checkpoint after a gap. Testing yourself after a delay does more for memory than rereading (Roediger and Karpicke, 2006).'],
+  ['Pair text with video.', 'Eleven lectures link the matching episode of David Silver\'s course or Berkeley\'s CS 285.'],
+  ['Read drafts like drafts.', 'Every lecture here is unreviewed. When a formula matters, check it against the cited paper first.'],
+];
+
+const everything = [
+  { label: 'Lectures', href: '/library/#lectures', count: `${lectures.length}` },
+  { label: 'Exercises with tests', href: '/exercises/', count: `${study.exercises.length}, with ${totalTests} tests` },
+  { label: 'Homework sets', href: '/homework/', count: `${study.library.homework}` },
+  { label: 'Cheat sheets', href: '/cheat-sheets/', count: `${study.library.cheatSheets}` },
+  { label: 'Algorithm diagrams', href: '/diagrams/', count: '' },
+  { label: 'Reading lists', href: '/reading/', count: `${study.library.readingLists} topics` },
+  { label: 'Notes from 2017', href: '/notes/', count: `${study.library.notes2017}` },
+  { label: 'Video courses', href: '/watch/', count: `${study.videoCourses.length}` },
+  { label: 'The curriculum, in order', href: '/curriculum/', count: `about ${totalHours} hours` },
+  { label: 'Changelog of the study repo', href: '/changelog/', count: '' },
+  { label: 'Releases of this site', href: '/releases/', count: `v${study.version}` },
+  { label: 'Working with an AI tutor', href: '/agents/', count: '' },
+];
 ---
 
-<BaseLayout>
+<BaseLayout title="Study Reinforcement Learning" description="Watch a Q-learning agent learn in your browser, then build one. 34 lectures in eight tracks, from MDPs to training language models, with tested exercises and a checkpoint for every lecture.">
   <Header slot="header" />
 
-  <div class="max-w-5xl mx-auto px-4 py-8 sm:py-16">
-    <!-- Hero Section -->
-    <section class="text-center mb-16">
-      <div class="inline-flex items-center justify-center w-16 h-16 mb-6 rounded-full bg-accent-100 dark:bg-accent-900/30">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-accent-600 dark:text-accent-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="3"/>
-          <path d="M12 3v6m0 6v6"/>
-          <path d="M3 12h6m6 0h6"/>
-          <path d="M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24"/>
-          <path d="M18.36 5.64l-4.24 4.24m-4.24 4.24l-4.24 4.24"/>
-        </svg>
+  <main class="bk">
+    <!-- the demo, and what it is -->
+    <section class="bk-wide bk-hero">
+      <div>
+        <p class="bk-label">study reinforcement learning</p>
+        <h1>Watch an agent learn, then <span class="bk-hl">build one</span>.</h1>
+        <p class="bk-dek">
+          The red dot starts out knowing nothing about this grid. Press Run and it wanders, falls into the pits, and now and then finds the +1.
+          Every step updates its estimate of how much each move is worth. By fifty episodes it heads straight for the goal.
+        </p>
+        <p>
+          That's Q-learning. <a href={`/posts/${l03.slug}/`}>Lecture 03</a> explains it, and in <a href={ex03.url}>exercise 03</a> you write it yourself.
+          From there the guide goes all the way to how language models are trained with RL: {lectures.length} lectures in {say(study.tracks.length)} tracks, {say(study.exercises.length)} exercises with tests, and a checkpoint at the end of every lecture.
+        </p>
+        <p class="bk-go">
+          <a class="first" href={`/posts/${l01.slug}/`}>Start with lecture 01</a>
+          <a href="/start/">Before you start</a>
+          <a href="/library/">Browse everything</a>
+        </p>
       </div>
+      <div class="bk-hero-demo">
+        <span class="bk-note" aria-hidden="true">live, not a recording</span>
+        <GridLearner caption="<b>Figure 1.</b> Q-learning on a small grid, running in your browser. The shading is how much the agent expects to collect from each square, green for good and red for bad, and the arrows are its best move so far. The line underneath is the return of each episode. Run shows every step; Train 50 episodes skips ahead." />
+      </div>
+    </section>
 
-      <h1 class="text-4xl sm:text-5xl font-bold text-primary-900 dark:text-primary-100 mb-4">
-        {siteConfig.name}
-      </h1>
-
-      <p class="text-lg text-primary-600 dark:text-primary-400 max-w-2xl mx-auto mb-8">
-        {siteConfig.description}
+    <!-- 1 -->
+    <section class="bk-wide bk-sec" id="how">
+      <div class="bk-col">
+      <h2><span class="bk-secnum">1</span>One topic, start to finish</h2>
+      <p>
+        Every lecture is studied the same way: read it, watch it, build it, then check yourself with the page closed.
+        Here are the four steps for the Q-learning in Figure 1.
       </p>
-
-      <div class="flex flex-wrap justify-center gap-4">
-        <a
-          href="/posts/"
-          class="inline-flex items-center px-6 py-3 rounded-lg bg-accent-500 text-white font-medium hover:bg-accent-600 transition-colors"
-        >
-          Explore the Garden
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 ml-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M5 12h14M12 5l7 7-7 7"/>
-          </svg>
-        </a>
-        <a
-          href="/about/"
-          class="inline-flex items-center px-6 py-3 rounded-lg border border-primary-300 dark:border-primary-700 text-primary-700 dark:text-primary-300 font-medium hover:bg-primary-100 dark:hover:bg-primary-800 transition-colors"
-        >
-          About
-        </a>
+      <ol class="bk-steps">
+        <li>
+          <span class="n" aria-hidden="true">1</span>
+          <div>
+            <h3>Read</h3>
+            <p><a href={`/posts/${l03.slug}/`}>Lecture 03</a> starts from value functions, builds the update one term at a time, shows that it's the Bellman equation rewritten as an update, and then scales it up to DQN.</p>
+            <p class="bk-formula">Q(s, a) ← Q(s, a) + α [ r + γ max<sub>a′</sub> Q(s′, a′) − Q(s, a) ]</p>
+          </div>
+        </li>
+        <li>
+          <span class="n" aria-hidden="true">2</span>
+          <div>
+            <h3>Watch</h3>
+            <p>
+              The lecture page links the parts of David Silver's course that cover the same ground: {silverFor03.map((v, i) => <>{i > 0 && (i === silverFor03.length - 1 ? ', and ' : ', ')}<a href={`https://www.youtube.com/watch?v=${v.id}`}>{v.title.replace(/^David Silver, /, '')}</a></>)}.
+              Watch them after reading, or before if you like to see it first.
+            </p>
+          </div>
+        </li>
+        <li>
+          <span class="n" aria-hidden="true">3</span>
+          <div>
+            <h3>Build</h3>
+            <p>Open <a href={ex03.url}>exercise 03</a>. You fill in three TODOs in <code>starter.py</code>, and this is one of them:</p>
+            {qUpdate && <Code code={qUpdate} lang="python" theme="github-light" />}
+            <p>
+              Then run <code>pytest exercises/03-q-learning/</code>. The {say(ex03.tests)} tests pass when the code is right.
+              Stuck? The hints go from a nudge to nearly the answer, and you take them one at a time.
+            </p>
+          </div>
+        </li>
+        <li>
+          <span class="n" aria-hidden="true">4</span>
+          <div>
+            <h3>Check</h3>
+            <p>Close the page and answer the lecture's checkpoint:</p>
+            <blockquote class="bk-checkpoint">{l03.checkpoint}</blockquote>
+            <p>Then answer it again a week later, without looking.</p>
+          </div>
+        </li>
+      </ol>
       </div>
     </section>
 
-    <!-- Recent Posts -->
-    {recentPosts.length > 0 && (
-      <section>
-        <div class="flex items-center justify-between mb-6">
-          <h2 class="text-2xl font-bold text-primary-900 dark:text-primary-100">
-            Recent Notes
-          </h2>
-          <a
-            href="/posts/"
-            class="text-sm font-medium text-accent-600 dark:text-accent-400 hover:text-accent-700 dark:hover:text-accent-300"
-          >
-            View all &rarr;
-          </a>
-        </div>
+    <!-- 2 -->
+    <section class="bk-wide bk-sec" id="build">
+      <div class="bk-col">
+        <h2><span class="bk-secnum">2</span>Nine things you'll build</h2>
+        <p>
+          Each exercise is a starter file with TODOs, tests that pass only when the code is right, graduated hints, and a reference solution.
+          All {say(study.exercises.length)} run on a laptop CPU, from value iteration on a gridworld to GRPO on a toy task with verifiable answers.
+        </p>
+      </div>
+      <ol class="bk-builds">
+        {study.exercises.map((e) => (
+          <li style={`--c: ${colorOf(e.num)}`}>
+            <a href={e.url}>{e.name}</a>
+            <span class="what">{cap(e.what)}.</span>
+            <span class="meta">{e.tests} tests · with lecture {e.num}</span>
+          </li>
+        ))}
+      </ol>
+    </section>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {recentPosts.map((post) => (
-            <PostCard post={post} />
-          ))}
-        </div>
-      </section>
-    )}
+    <!-- 3 -->
+    <section class="bk-wide bk-sec" id="tracks">
+      <div class="bk-col">
+        <h2><span class="bk-secnum">3</span>Eight tracks</h2>
+        <p>
+          Every track builds on Foundations. After that the tracks split by where the reward comes from, and you can take them in the order you need.
+          Each track has its own page, with its lectures in order and the checkpoint for each.
+        </p>
+      </div>
+      <figure style="margin-top: 1rem">
+        <span class="bk-note bk-figure-note" style="left: 1%; top: 3.6rem">start here, then pick a track ↓</span>
+        <TrackMap />
+        <figcaption>
+          <b>Figure 2.</b> The eight tracks. A solid arrow means a track's first lecture needs the track it comes from; a dashed one marks a single lecture that builds on another track.
+          Click a track to open it.
+        </figcaption>
+      </figure>
+      <ol class="bk-tracklist">
+        {study.tracks.map((t, i) => (
+          <li style={`--c: ${t.color}`}>
+            <span class="no" aria-hidden="true">{i + 1}</span>
+            <div>
+              <a href={`/tracks/${t.id}/`}>{t.name}</a>
+              <p>{t.blurb}</p>
+              <p class="meta">{t.lectures.length} lectures, about {Math.round(t.hours)} hours{t.exerciseCount ? `, ${t.exerciseCount} ${t.exerciseCount === 1 ? 'exercise' : 'exercises'}` : ''}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
 
-    <!-- Featured Projects -->
-    {featuredProjects.length > 0 && (
-      <section class="mt-16">
-        <div class="flex items-center justify-between mb-6">
-          <h2 class="text-2xl font-bold text-primary-900 dark:text-primary-100">
-            Featured Projects
-          </h2>
-          <a
-            href="/projects/"
-            class="text-sm font-medium text-accent-600 dark:text-accent-400 hover:text-accent-700 dark:hover:text-accent-300"
-          >
-            View all &rarr;
-          </a>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {featuredProjects.map((project) => (
-            <a
-              href={`/projects/${project.id}/`}
-              class="block p-6 rounded-xl border border-primary-200 dark:border-primary-800 hover:border-accent-300 dark:hover:border-accent-700 transition-colors"
-            >
-              <h3 class="text-lg font-semibold text-primary-900 dark:text-primary-100 mb-2">
-                {project.data.title}
-              </h3>
-              <p class="text-sm text-primary-600 dark:text-primary-400 mb-3">
-                {project.data.description}
-              </p>
-              {project.data.technologies && (
-                <div class="flex flex-wrap gap-1">
-                  {project.data.technologies.slice(0, 3).map((tech: string) => (
-                    <span class="text-xs px-2 py-1 rounded-sm bg-primary-100 dark:bg-primary-800 text-primary-600 dark:text-primary-400">
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </a>
-          ))}
-        </div>
-      </section>
-    )}
-
-    <!-- Growth Legend -->
-    <section class="mt-16 p-6 bg-primary-100/50 dark:bg-primary-900/50 rounded-xl">
-      <h3 class="text-lg font-semibold text-primary-900 dark:text-primary-100 mb-4">
-        How to Read This Garden
-      </h3>
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-        <div class="flex items-start gap-3">
-          <span class="growth-seedling">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M7 20h10"/>
-              <path d="M12 20v-6"/>
-              <path d="M9 10a3 3 0 0 1 6 0"/>
-              <path d="M12 10V7"/>
-              <path d="M9 7a3 3 0 0 1 6 0"/>
-            </svg>
-          </span>
-          <div>
-            <span class="font-medium text-primary-900 dark:text-primary-100">Seedling</span>
-            <p class="text-primary-600 dark:text-primary-400">New ideas, rough drafts</p>
-          </div>
-        </div>
-        <div class="flex items-start gap-3">
-          <span class="growth-budding">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M7 20h10"/>
-              <path d="M12 20v-8"/>
-              <path d="M12 12c-2-2-4-2.5-4-5a4 4 0 0 1 8 0c0 2.5-2 3-4 5"/>
-            </svg>
-          </span>
-          <div>
-            <span class="font-medium text-primary-900 dark:text-primary-100">Budding</span>
-            <p class="text-primary-600 dark:text-primary-400">Growing, needs work</p>
-          </div>
-        </div>
-        <div class="flex items-start gap-3">
-          <span class="growth-evergreen">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 22v-7"/>
-              <path d="M9 22h6"/>
-              <path d="M12 15l-4-4 2-1-3-3 3-1-2-3h8l-2 3 3 1-3 3 2 1z"/>
-            </svg>
-          </span>
-          <div>
-            <span class="font-medium text-primary-900 dark:text-primary-100">Evergreen</span>
-            <p class="text-primary-600 dark:text-primary-400">Mature, well-maintained</p>
-          </div>
-        </div>
+    <!-- 4 -->
+    <section class="bk-wide bk-sec" id="landscape">
+      <div class="bk-col">
+        <h2><span class="bk-secnum">4</span>One MDP, six families</h2>
+        {study.landscape.map((p) => <p set:html={inlineMd(p)} />)}
+      </div>
+      <div style="margin-top: 1.5rem">
+        <LandscapeMap />
       </div>
     </section>
-  </div>
+
+    <!-- 5 -->
+    <section class="bk-wide bk-sec" id="method">
+      <div class="bk-col">
+        <h2><span class="bk-secnum">5</span>Eight rules for studying RL</h2>
+        <p>Reading about RL and getting a policy to learn are different skills. The lectures cover the first. The exercises and checkpoints cover the second, if you use them like this.</p>
+      </div>
+      <ol class="bk-rules" style="max-width: 50rem; margin-top: 1rem">
+        {rules.map(([lead, text]) => <li><strong>{lead}</strong> <span set:html={text} /></li>)}
+      </ol>
+    </section>
+
+    <!-- 6 -->
+    <nav class="bk-wide bk-sec bk-toc" id="everything" aria-label="Everything on this site">
+      <div class="bk-col">
+      <h2><span class="bk-secnum">6</span>Everything here</h2>
+      <p>The <a href="/library/">Library</a> lists every page on one page. Search with <kbd>Ctrl K</kbd>, or open the graph to see how the pages link to each other.</p>
+      <ol>
+        {everything.map((e) => (
+          <li>
+            <a href={e.href}>{e.label}</a>
+            <span class="lead"></span>
+            <span class="pg">{e.count}</span>
+          </li>
+        ))}
+      </ol>
+      </div>
+    </nav>
+
+    <section class="bk-wide" style="margin-top: 2.5rem">
+      <p class="bk-col bk-meta">
+        Yad Konrad started this repo on 31 December 2016 as a list of talks and courses about reinforcement learning. It grew into these notes, lectures, and exercises. <a href="/about/">How it started</a>.
+      </p>
+    </section>
+  </main>
 
   <Footer slot="footer" />
 </BaseLayout>

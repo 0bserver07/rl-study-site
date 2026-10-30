@@ -7,6 +7,8 @@
  */
 
 import { getCollection } from 'astro:content';
+import { extractMarkdownLinks } from '../utils/backlinks';
+import studyTracks from '../study-tracks.json';
 
 // Get all posts for the graph
 const posts = await getCollection('posts', ({ data }) => {
@@ -16,9 +18,12 @@ const posts = await getCollection('posts', ({ data }) => {
 // Build graph data
 const nodes = posts.map(post => ({
   id: post.id,
-  title: post.data.title,
+  // Study site: "Lecture 15: RL with..." -> "15 RL with..." so labels overlap less
+  title: post.data.title.replace(/^Lecture (\d\d): /, '$1 '),
   growth: post.data.growth || 'seedling',
   tags: post.data.tags || [],
+  // Study site: colour each lecture by its track
+  color: studyTracks.find((t) => t.id === post.data.track)?.color,
 }));
 
 // Extract links from content
@@ -44,6 +49,18 @@ for (const post of posts) {
         target: target,
       });
     }
+  }
+}
+
+// Study site: lectures link to each other with plain markdown links to
+// /posts/<slug>/, so count those as edges too (once per pair).
+const seen = new Set(links.map((l) => `${l.source}>${l.target}`));
+for (const post of posts) {
+  for (const { slug } of extractMarkdownLinks(post.body || '')) {
+    const key = `${post.id}>${slug}`;
+    if (slug === post.id || seen.has(key) || !posts.some((p) => p.id === slug)) continue;
+    seen.add(key);
+    links.push({ source: post.id, target: slug });
   }
 }
 
@@ -110,19 +127,14 @@ const graphData = { nodes, links };
     </div>
 
     <!-- Legend -->
-    <footer class="px-6 py-3 bg-primary-900/90 flex items-center gap-6 text-sm">
-      <div class="flex items-center gap-2">
-        <span class="w-3 h-3 rounded-full bg-green-400"></span>
-        <span class="text-primary-300">Seedling</span>
-      </div>
-      <div class="flex items-center gap-2">
-        <span class="w-3 h-3 rounded-full bg-amber-400"></span>
-        <span class="text-primary-300">Budding</span>
-      </div>
-      <div class="flex items-center gap-2">
-        <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
-        <span class="text-primary-300">Evergreen</span>
-      </div>
+    <footer class="px-6 py-3 bg-primary-900/90 flex flex-wrap items-center gap-x-5 gap-y-1 text-sm">
+      <!-- Study site: legend by track instead of growth status -->
+      {studyTracks.map((t) => (
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full" style={`background:${t.color}`}></span>
+          <span class="text-primary-300">{t.name}</span>
+        </div>
+      ))}
       <div class="ml-auto text-primary-400">
         Drag to move · Scroll to zoom · Click to navigate
       </div>
@@ -247,7 +259,7 @@ const graphData = { nodes, links };
       // Node circles
       node.append('circle')
         .attr('r', 8)
-        .attr('fill', d => getColor(d.growth))
+        .attr('fill', d => d.color || getColor(d.growth))
         .attr('stroke', '#fff')
         .attr('stroke-width', 2);
 

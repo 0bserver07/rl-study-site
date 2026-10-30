@@ -1,0 +1,96 @@
+{
+  "checked": "2026-10-29",
+  "note": "Every video ID and playlist below was checked against YouTube's oEmbed endpoint on the date above; titles are YouTube's. Lecture mappings only use videos whose titles name the topic.",
+  "courses": [
+    {
+      "id": "silver",
+      "title": "David Silver: Reinforcement Learning (UCL, 2015)",
+      "blurb": "It was on this repo's first list, in 2016, and it's still a good place to start. Ten lectures, from MDPs to classic games.",
+      "channel": "Google DeepMind",
+      "playlist": "PLqYmG7hTraZDM-OYHWgPebj2MfCFzFObQ",
+      "videos": [
+        { "id": "2pWv7GOvuf0", "title": "Lecture 1: Introduction to Reinforcement Learning" },
+        { "id": "lfHX2hHRMVQ", "title": "Lecture 2: Markov Decision Process" },
+        { "id": "Nd1-UUMVfz4", "title": "Lecture 3: Planning by Dynamic Programming" },
+        { "id": "PnHCvfgC_ZA", "title": "Lecture 4: Model-Free Prediction" },
+        { "id": "0g4j2k_Ggc4", "title": "Lecture 5: Model Free Control" },
+        { "id": "UoPei5o4fps", "title": "Lecture 6: Value Function Approximation" },
+        { "id": "KHZVXao4qXs", "title": "Lecture 7: Policy Gradient Methods" },
+        { "id": "ItMutbeOHtc", "title": "Lecture 8: Integrating Learning and Planning" },
+        { "id": "sGuiWX07sKw", "title": "Lecture 9: Exploration and Exploitation" },
+        { "id": "kZ_AUmFcZtk", "title": "Lecture 10: Classic Games" }
+      ]
+    },
+    {
+      "id": "cs285",
+      "title": "Berkeley CS 285: Deep Reinforcement Learning (Fall 2023)",
+      "blurb": "Sergey Levine's course, the current version of the CS 294 course in the 2017 notes. Imitation learning, policy gradients, Q-learning, model-based and offline RL, and RL with language models.",
+      "channel": "RAIL",
+      "playlist": "PL_iWQOsE6TfVYGEGiAOMaOzzv41Jfm_Ps",
+      "first": { "id": "SupFHGbytvA", "title": "CS 285: Lecture 1, Introduction. Part 1" }
+    },
+    {
+      "id": "dm2018",
+      "title": "DeepMind x UCL: Reinforcement Learning Course (2018)",
+      "blurb": "A later UCL course from DeepMind.",
+      "channel": "Google DeepMind",
+      "playlist": "PLqYmG7hTraZBKeNJ-JE_eyJHZ7XgBoAyb",
+      "first": { "id": "ISk80iLhdfU", "title": "Reinforcement Learning 1: Introduction to Reinforcement Learning" }
+    },
+    {
+      "id": "dm2021",
+      "title": "DeepMind x UCL: Reinforcement Learning Lecture Series (2021)",
+      "blurb": "Thirteen lectures. The first one is below; the rest follow on the same channel.",
+      "channel": "Google DeepMind",
+      "first": { "id": "TCCjZe0y4Qc", "title": "DeepMind x UCL RL Lecture Series - Introduction to Reinforcement Learning [1/13]" }
+    }
+  ],
+  "older": [
+    { "title": "CS 294-112 (Berkeley, Fall 2018), archived lecture recordings", "url": "https://www.youtube.com/playlist?list=PLkFD6_40KJIxJMR-j5A1mkxK26gh_qg37" }
+  ],
+  "unavailable": [
+    { "title": "Joelle Pineau, Introduction to Reinforcement Learning (2016)", "url": "http://videolectures.net/deeplearning2016_pineau_reinforcement_learning/" },
+    { "title": "Pieter Abbeel, Deep Reinforcement Learning (2016)", "url": "http://videolectures.net/deeplearning2016_abbeel_deep_reinforcement/" }
+  ],
+  "byLecture": {
+    "01": [
+      { "id": "lfHX2hHRMVQ", "title": "David Silver, Lecture 2: Markov Decision Process" },
+      { "id": "Nd1-UUMVfz4", "title": "David Silver, Lecture 3: Planning by Dynamic Programming" }
+    ],
+    "02": [
+      { "id": "KHZVXao4qXs", "title": "David Silver, Lecture 7: Policy Gradient Methods" }
+    ],
+    "03": [
+      { "id": "PnHCvfgC_ZA", "title": "David Silver, Lecture 4: Model-Free Prediction" },
+      { "id": "0g4j2k_Ggc4", "title": "David Silver, Lecture 5: Model Free Control" },
+      { "id": "UoPei5o4fps", "title": "David Silver, Lecture 6: Value Function Approximation" }
+    ],
+    "04": [
+      { "id": "KHZVXao4qXs", "title": "David Silver, Lecture 7: Policy Gradient Methods" }
+    ],
+    "08": [
+      { "id": "ItMutbeOHtc", "title": "David Silver, Lecture 8: Integrating Learning and Planning" },
+      { "id": "UQGS4ycGv8g", "title": "CS 285, Lecture 12: Model-Based RL with Policies" }
+    ],
+    "10": [
+      { "id": "egJgDbe5oaM", "title": "CS 285, Lecture 21: RL with Sequence Models & Language Models" }
+    ],
+    "18": [
+      { "id": "tbLaFtYpWWU", "title": "CS 285, Lecture 2: Imitation Learning" }
+    ],
+    "19": [
+      { "id": "NV4oSWe1H9o", "title": "CS 285, Lecture 15: Offline Reinforcement Learning" },
+      { "id": "TCn26YClkCw", "title": "CS 285, Lecture 16: Offline Reinforcement Learning 2" }
+    ],
+    "20": [
+      { "id": "sGuiWX07sKw", "title": "David Silver, Lecture 9: Exploration and Exploitation" }
+    ],
+    "21": [
+      { "id": "kZ_AUmFcZtk", "title": "David Silver, Lecture 10: Classic Games" }
+    ],
+    "22": [
+      { "id": "ItMutbeOHtc", "title": "David Silver, Lecture 8: Integrating Learning and Planning" },
+      { "id": "UQGS4ycGv8g", "title": "CS 285, Lecture 12: Model-Based RL with Policies" }
+    ]
+  }
+}
