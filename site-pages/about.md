@@ -9,7 +9,7 @@ I'm Yad Konrad. I started this repo on 31 December 2016 as a list of the talks a
 
 ## How I got here
 
-1. **Self-driving in GTA.** My way into RL was [Nvidia-Autopilot-Keras](https://github.com/0bserver07/Nvidia-Autopilot-Keras) (January 2017): a Keras version of NVIDIA's end-to-end self-driving model ([Bojarski et al. 2016, arXiv:1604.07316](https://arxiv.org/abs/1604.07316)), trained on a GTA V driving dataset.
+1. **Self-driving in GTA San Andreas.** My way into RL was getting a car to drive itself in GTA San Andreas. That became [Nvidia-Autopilot-Keras](https://github.com/0bserver07/Nvidia-Autopilot-Keras) (January 2017): a Keras version of NVIDIA's end-to-end self-driving model ([Bojarski et al. 2016, arXiv:1604.07316](https://arxiv.org/abs/1604.07316)).
 2. **Berkeley.** CS 294 Deep Reinforcement Learning, spring 2017, taught by Sergey Levine, John Schulman, and Chelsea Finn. [My notes from it](/notes/cs294-2017/) are kept as I wrote them.
 3. **Then** program synthesis, then NLP with RL, then LLMs, and then other things.
 

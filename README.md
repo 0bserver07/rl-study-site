@@ -1,3 +1,17 @@
+# Study Reinforcement Learning: the site
+
+The site for [Study-Reinforcement-Learning](https://github.com/0bserver07/Study-Reinforcement-Learning), published at https://rl.yad.codes.
+
+The lectures, exercises, and notes live in that repo as plain markdown. This repo pulls it in as the `study/` submodule and builds every page from it at build time. It is built on Mycelium, an Astro theme; the theme's own README follows below.
+
+- How the site fits together, and how to cut a release: [STUDY-SITE.md](STUDY-SITE.md)
+- What changed in each version: [RELEASES.md](RELEASES.md)
+- Every lecture is still marked unreviewed. Corrections belong in the study repo.
+
+Code: MIT, from the theme. Text from the study repo: CC BY-NC-ND.
+
+---
+
 <p align="center">
   <img src="assets/banner.svg" alt="mycelium - Write in Obsidian. Publish with Astro." width="100%">
 </p>

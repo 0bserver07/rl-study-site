@@ -30,7 +30,7 @@ import { remarkDropcap } from './src/utils/remark-dropcap.ts';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://example.com', // Update with your site URL
+  site: 'https://rl.yad.codes',
 
   integrations: [
     mdx(),

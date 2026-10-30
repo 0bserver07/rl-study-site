@@ -1,8 +1,7 @@
 name: CI
 
+# Builds pull requests. Pushes to master are built and published by deploy.yml.
 on:
-  push:
-    branches: [master]
   pull_request:
     branches: [master]
 
@@ -11,6 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 0 # the sync reads the study repo's history for dates
       - uses: actions/setup-node@v4
         with:
           node-version: 22

@@ -108,7 +108,7 @@ export interface SocialLink {
 
 export const siteConfig: MyceliumConfig = {
   // Site Identity
-  site: 'https://example.com',
+  site: 'https://rl.yad.codes',
   name: 'Study Reinforcement Learning',
   gardener: 'Yad Konrad',
   description: 'Notes, lectures, and exercises for learning reinforcement learning and how it is used to train language models.',
