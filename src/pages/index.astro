@@ -20,6 +20,7 @@ import LandscapeMap from '../components/LandscapeMap.astro';
 import TrackMap from '../components/roadmap/TrackMap.astro';
 import GridLearner from '../components/roadmap/GridLearner.astro';
 import study from '../generated/study.json';
+import { siteConfig } from '../config';
 
 const lectures = study.lectures;
 const byNum = new Map(lectures.map((l) => [l.num, l]));
@@ -87,6 +88,7 @@ const everything = [
       <div>
         <p class="bk-label">study reinforcement learning</p>
         <h1>Watch an agent learn, then <span class="bk-hl">build one</span>.</h1>
+        <p class="bk-byline">by <a href="#history">{siteConfig.gardener}</a> · <span>started 31 December 2016</span></p>
         <p class="bk-dek">
           The red dot starts out knowing nothing about this grid. Press Run and it wanders, falls into the pits, and now and then finds the +1.
           Every step updates its estimate of how much each move is worth. By fifty episodes it heads straight for the goal.
@@ -249,10 +251,41 @@ const everything = [
       </div>
     </nav>
 
-    <section class="bk-wide" style="margin-top: 2.5rem">
-      <p class="bk-col bk-meta">
-        Yad Konrad started this repo on 31 December 2016 as a list of talks and courses about reinforcement learning. It grew into these notes, lectures, and exercises. <a href="/about/">How it started</a>.
-      </p>
+    <!-- 7 -->
+    <section class="bk-wide bk-sec" id="history">
+      <div class="bk-col">
+        <h2><span class="bk-secnum">7</span>How this started</h2>
+        <p class="bk-lead">
+          <span class="bk-hl">I'm {siteConfig.gardener}.</span> I started this repo on 31 December 2016 as a list of the talks and courses I was learning reinforcement learning from. It grew into the notes, lectures, and exercises on this site.
+        </p>
+      </div>
+      <ol class="bk-history">
+        <li>
+          <span class="yr">2016</span>
+          <p><b>The first list.</b> Joelle Pineau's and Pieter Abbeel's talks, Sutton and Barto's book, David Silver's course, and Berkeley's CS 294. It is still on the <a href="/watch/">Watch</a> page.</p>
+        </li>
+        <li>
+          <span class="yr">2017</span>
+          <p><b>A car that drives itself in GTA San Andreas.</b> That was my way into RL. It became <a href="https://github.com/0bserver07/Nvidia-Autopilot-Keras">Nvidia-Autopilot-Keras</a>, a Keras version of NVIDIA's end-to-end self-driving model.</p>
+        </li>
+        <li>
+          <span class="yr">2017</span>
+          <p><b>Berkeley's CS 294.</b> Deep Reinforcement Learning, taught by Sergey Levine, John Schulman, and Chelsea Finn. <a href="/notes/cs294-2017/">My notes from it</a> are kept as I wrote them.</p>
+        </li>
+        <li>
+          <span class="yr word">later</span>
+          <p>Program synthesis, then NLP with RL, then language models.</p>
+        </li>
+        <li>
+          <span class="yr">2025</span>
+          <p><b>The lectures.</b> {lectures.length} lectures, exercises with tests, and cheat sheets, drafted with AI coding assistants and then edited. Each lecture stays marked unreviewed until someone has read it end to end and checked it.</p>
+        </li>
+        <li>
+          <span class="yr">2026</span>
+          <p><b>This site.</b> The lectures, the exercises, the 2017 notes, and the first list, in one place.</p>
+        </li>
+      </ol>
+      <p class="bk-col" style="margin-top: 1.2rem"><a href="/about/">The full story, and whose teaching this builds on</a>.</p>
     </section>
   </main>
 

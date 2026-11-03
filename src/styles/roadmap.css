@@ -64,7 +64,7 @@ button, input, select, textarea { font-family: inherit; }
 .bk a { color: var(--blue); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; text-decoration-color: rgb(31 78 140 / 0.45); }
 .bk a:hover { text-decoration-color: currentColor; }
 .bk code { font-size: 0.82em; background: var(--paper-deep); padding: 0.08em 0.3em; border-radius: 3px; }
-.bk-hl { background: linear-gradient(100deg, rgb(255 213 79 / 0.25) 0, var(--highlight) 0.25em, var(--highlight) calc(100% - 0.25em), rgb(255 213 79 / 0.2) 100%); background-size: 100% 0.6em; background-repeat: no-repeat; background-position: 0 90%; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.bk-hl, .prose-mycelium mark { color: inherit; background: linear-gradient(100deg, rgb(255 213 79 / 0.25) 0, var(--highlight) 0.25em, var(--highlight) calc(100% - 0.25em), rgb(255 213 79 / 0.2) 100%); background-size: 100% 0.6em; background-repeat: no-repeat; background-position: 0 90%; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
 .bk-note { font-family: var(--hand); font-weight: 400; color: var(--red); font-size: 1.12rem; line-height: 1.2; display: inline-block; transform: rotate(-2.5deg); }
 .bk-meta { font-style: italic; color: var(--ink-soft); }
 .bk-swatch { display: inline-block; width: 0.7em; height: 0.7em; border-radius: 2px; vertical-align: 0.02em; margin-right: 0.3em; }
@@ -264,6 +264,9 @@ button, input, select, textarea { font-family: inherit; }
 .bk-hero .bk-dek { margin: 0 0 1rem; }
 .bk-go { display: flex; flex-wrap: wrap; gap: 0.5rem 1.6rem; align-items: baseline; margin: 1.5rem 0 0 !important; font-size: 1.1rem; }
 .bk-go a.first { font-weight: 700; font-size: 1.25rem; }
+.bk-hero .bk-byline { font-family: var(--sc); font-weight: 500; font-size: 1.12rem; letter-spacing: 0.03em; color: var(--muted); margin: -0.4rem 0 1.2rem; }
+.bk-hero .bk-byline a { color: var(--ink); text-decoration-color: var(--red); }
+.bk-hero .bk-byline span { white-space: nowrap; }
 .bk-go a.first::after { content: "\2009→"; color: var(--red); display: inline-block; text-decoration: none; }
 .bk-hero-demo { position: relative; padding-top: 1.9rem; }
 .bk-hero-demo > .bk-note { position: absolute; top: 0.1rem; right: 0.4rem; }
@@ -301,6 +304,15 @@ button, input, select, textarea { font-family: inherit; }
 .bk-tracklist p { margin: 0.15rem 0 0; font-size: 1.02rem; line-height: 1.5; color: var(--ink-soft); }
 .bk-tracklist p.meta { font-style: italic; color: var(--muted); font-size: 0.97rem; }
 .bk-sec { margin-top: 4rem; }
+
+/* how this started */
+.bk-lead { font-size: 1.3rem; line-height: 1.5; }
+.bk-history { list-style: none; margin: 1.4rem 0 0; padding: 0; max-width: 42rem; }
+.bk-history li { display: grid; grid-template-columns: 3.4rem minmax(0, 1fr); gap: 0 1rem; padding: 0.75rem 0 0.85rem; border-top: 1px solid var(--rule); }
+.bk-history li:last-child { border-bottom: 1px solid var(--rule); }
+.bk-history .yr { font-weight: 800; color: var(--red); font-variant-numeric: lining-nums; }
+.bk-history .yr.word { font-weight: 400; font-style: italic; }
+.bk-history p { margin: 0; line-height: 1.5; }
 .bk-col { max-width: 42rem; }
 .bk-steps pre.astro-code { font-size: 0.76rem; line-height: 1.5; white-space: pre-wrap; overflow-wrap: break-word; }
 .bk-steps pre.astro-code code { font-size: inherit; line-height: inherit; }
