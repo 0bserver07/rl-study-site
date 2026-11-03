@@ -1,8 +1,6 @@
 import Bandit from '../components/roadmap/Bandit.astro';
 import GridLearner from '../components/roadmap/GridLearner.astro';
 
-<p class="draft-note">Draft note: open with the actual GTA moment. What did you see the first time the car "drove"? How did you get frames and steering out of the game? One or two specific sentences, your words.</p>
-
 My way into reinforcement learning was a car in GTA San Andreas. I wanted it to drive itself.
 
 What I ended up with, in January 2017, was [a Keras version](https://github.com/0bserver07/Nvidia-Autopilot-Keras) of NVIDIA's end-to-end driving model: a network that looks at a frame and outputs a steering angle. NVIDIA's paper says it learned "with only the human steering angle as the training signal" ([Bojarski et al. 2016](https://arxiv.org/abs/1604.07316)). So it wasn't reinforcement learning. It was copying a person. The car was never told whether a turn went well. It learned what a human would have done in the same frame.
@@ -84,8 +82,6 @@ The gradient underneath GRPO is still the one from Williams's 1992 paper.
 ## Why it's worth knowing anyway
 
 My own path went from RL to program synthesis, then NLP with RL, then language models.
-
-<p class="draft-note">Draft note: one honest sentence on whether RL really kept showing up for you in each of those, and where. Don't keep a line here that isn't true for you.</p>
 
 Sutton wrote in 2019 that the methods that win in the long run are the general ones that keep getting better with more compute, which to him means search and learning. He called it [The Bitter Lesson](http://www.incompleteideas.net/IncIdeas/BitterLesson.html). In 2021 he, David Silver, Satinder Singh and Doina Precup argued something bigger, that [reward is enough](https://doi.org/10.1016/j.artint.2021.103535): maximizing reward could account for most of what we call intelligence. I don't know if that's right. I'm not sure anyone does yet.
 
