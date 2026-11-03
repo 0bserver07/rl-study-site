@@ -1,7 +1,7 @@
 {
   "name": "rl-study-site",
   "type": "module",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "The site for Study Reinforcement Learning, built on the Mycelium theme",
   "author": "Yad Konrad",
   "license": "MIT",

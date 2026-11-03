@@ -2,6 +2,12 @@
 
 Versions of this site. The lectures, notes, and exercises have their own history in the study repo's [changelog](/changelog/). Each release here names the study repo commit it was built from.
 
+## 0.3.1 (2026-11-03)
+
+Built from the study repo at commit `1b7eae8`.
+
+- Corrected the self-driving project on the home page, the About page and in the essay: it was in GTA V, trained on DeepDrive's GTA V driving dataset, not in GTA San Andreas.
+
 ## 0.3.0 (2026-11-03)
 
 Built from the study repo at commit `1b7eae8`.
@@ -13,7 +19,7 @@ Built from the study repo at commit `1b7eae8`.
 
 Built from the study repo at commit `82eda54`.
 
-- The home page says who made it: a byline under the headline, and a last section, How this started, with the history from the About page (the 2016 list, GTA San Andreas, CS 294, the lectures, and this site).
+- The home page says who made it: a byline under the headline, and a last section, How this started, with the history from the About page (the 2016 list, GTA V, CS 294, the lectures, and this site).
 - A newsletter signup for yad.codes under Figure 1 and at the end of About.
 - A share card for links posted on Twitter, Slack, and elsewhere, and the site's own favicon.
 - Fixed: the Before you start checklist counted eight boxes when there are six. Six lectures (04, 05, 07, 08, 09, 13) showed their own time and prerequisites lines next to the ones from the curriculum, and used them as their description. 32 pages had no description. The home page title said the site name twice. The landscape map's family names opened the theme's tag pages instead of the track pages.

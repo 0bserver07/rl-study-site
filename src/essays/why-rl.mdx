@@ -1,11 +1,11 @@
 import Bandit from '../components/roadmap/Bandit.astro';
 import GridLearner from '../components/roadmap/GridLearner.astro';
 
-My way into reinforcement learning was a car in GTA San Andreas. I wanted it to drive itself. So I played the game myself, recorded the screen, and recorded my keystrokes at the same time.
+My way into reinforcement learning was a car in GTA V. I wanted it to drive itself.
 
-What I ended up with, in January 2017, was [a Keras version](https://github.com/0bserver07/Nvidia-Autopilot-Keras) of NVIDIA's end-to-end driving model: a network that looks at a frame and outputs a steering angle. NVIDIA's paper says theirs learned "with only the human steering angle as the training signal" ([Bojarski et al. 2016](https://arxiv.org/abs/1604.07316)). Mine learned from my keystrokes. So it wasn't reinforcement learning. It was copying me. The car was never told whether a turn went well. It learned what I would have done in the same frame.
+What I ended up with, in January 2017, was [a Keras version](https://github.com/0bserver07/Nvidia-Autopilot-Keras) of NVIDIA's end-to-end driving model: a network that looks at a frame and outputs a steering angle. NVIDIA's paper says theirs learned "with only the human steering angle as the training signal" ([Bojarski et al. 2016](https://arxiv.org/abs/1604.07316)). Mine learned from a GTA V driving dataset from DeepDrive: recorded frames paired with the steering. So it wasn't reinforcement learning. It was copying. The car was never told whether a turn went well. It learned to match the recorded steering, frame by frame.
 
-Learning from what a person did, versus learning from what happened when you tried something. That difference is the whole field. So before any history, try it yourself.
+Copying recorded examples, versus learning from what happened when you tried something. That difference is the whole field. So before any history, try it yourself.
 
 ## Three machines
 
