@@ -1,0 +1,26 @@
+---
+/**
+ * Signup (study site): the yad.codes newsletter form, set like the rest of the book.
+ *
+ * A plain HTML form that POSTs to the garden's Netlify function on yad.codes
+ * (double opt-in, Resend audience). No JavaScript on purpose: that endpoint
+ * sends no CORS headers, so a fetch() from rl.yad.codes would be blocked, but
+ * a form post is an ordinary navigation. The function answers with its own
+ * "check your inbox" page, whose back link returns here.
+ *
+ * One per page: the home page puts it under Figure 1, the About page at the end.
+ */
+const ENDPOINT = 'https://yad.codes/.netlify/functions/subscribe';
+---
+
+<form class="bk-signup" action={ENDPOINT} method="post">
+  <p class="bk-label">more projects like this</p>
+  <p>I write up what I build and learn on <a href="https://yad.codes">yad.codes</a>. Sign up to get the next one by email.</p>
+  <div class="row">
+    <input type="email" name="email" required autocomplete="email" aria-label="Email address" placeholder="your lovely email" />
+    <button type="submit">Subscribe</button>
+  </div>
+  <!-- Honeypot: people never fill it in; the function drops any submission that does. -->
+  <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" class="hp" />
+  <p class="fine">One email to confirm. Unsubscribe anytime.</p>
+</form>

@@ -3,6 +3,7 @@ import { getCollection, render } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import Signup from '../components/roadmap/Signup.astro';
 
 export async function getStaticPaths() {
   const pages = await getCollection('pages', ({ data }) => {
@@ -56,6 +57,7 @@ const wide = ['curriculum', 'watch', 'diagrams', 'library'].includes(page.id) ||
         <div class="prose-mycelium">
           <Content />
         </div>
+        {page.id === 'about' && <Signup />}
       </article>
     </div>
   </main>

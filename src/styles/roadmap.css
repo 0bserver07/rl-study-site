@@ -316,3 +316,16 @@ button, input, select, textarea { font-family: inherit; }
 .bk-col { max-width: 42rem; }
 .bk-steps pre.astro-code { font-size: 0.76rem; line-height: 1.5; white-space: pre-wrap; overflow-wrap: break-word; }
 .bk-steps pre.astro-code code { font-size: inherit; line-height: inherit; }
+
+/* newsletter signup (posts to the yad.codes garden; see Signup.astro) */
+.bk-signup { margin: 1.5rem 0 0; padding-top: 0.9rem; border-top: 1px solid var(--rule); }
+.bk-signup .bk-label { margin-bottom: 0.15rem; }
+.bk-signup p { margin: 0 0 0.6rem; font-size: 1rem; line-height: 1.5; color: var(--ink-soft); }
+.bk-signup .row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.bk-signup input[type=email] { flex: 1 1 12rem; min-width: 0; font: inherit; font-size: 1rem; color: var(--ink); background: var(--box); border: 1.2px solid var(--ink-soft); border-radius: 3px; padding: 0.2rem 0.6rem 0.25rem; }
+.bk-signup input[type=email]::placeholder { color: var(--muted); font-style: italic; }
+.bk-signup input[type=email]:focus-visible, .bk-signup button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.bk-signup button { font-family: var(--sc); font-weight: 500; font-size: 1rem; letter-spacing: 0.02em; background: var(--box); color: var(--ink); border: 1.2px solid var(--ink); border-radius: 3px; padding: 0.15rem 0.8rem 0.25rem; cursor: pointer; }
+.bk-signup button:hover { background: var(--ink); color: var(--paper); }
+.bk-signup .fine { margin: 0.45rem 0 0; font-size: 0.9rem; font-style: italic; color: var(--muted); }
+.bk-signup .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }

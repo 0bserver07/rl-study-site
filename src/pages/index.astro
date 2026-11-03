@@ -19,6 +19,7 @@ import Footer from '../components/Footer.astro';
 import LandscapeMap from '../components/LandscapeMap.astro';
 import TrackMap from '../components/roadmap/TrackMap.astro';
 import GridLearner from '../components/roadmap/GridLearner.astro';
+import Signup from '../components/roadmap/Signup.astro';
 import study from '../generated/study.json';
 import { siteConfig } from '../config';
 
@@ -106,6 +107,7 @@ const everything = [
       <div class="bk-hero-demo">
         <span class="bk-note" aria-hidden="true">live, not a recording</span>
         <GridLearner caption="<b>Figure 1.</b> Q-learning on a small grid, running in your browser. The shading is how much the agent expects to collect from each square, green for good and red for bad, and the arrows are its best move so far. The line underneath is the return of each episode. Run shows every step; Train 50 episodes skips ahead." />
+        <Signup />
       </div>
     </section>
 
