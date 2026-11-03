@@ -86,4 +86,5 @@ The custom domain is `rl.yad.codes` (set in the repo's Pages settings, and as `s
 ## Not done yet
 
 - Every lecture is `unreviewed`. Decide whether the site goes public in that state before deploying.
-- The theme's `projects` and `docs` routes still build (empty), which logs "collection is empty" warnings.
+- The theme's `projects` and `docs` collections are still defined (empty), and the theme's `LinkPreview` asks for `projects` on every lecture page, which logs "collection is empty" warnings. Their routes, and the theme's `/posts/` index, pagination and tag pages, were removed in 0.2.0; `/posts/` redirects to `/library/` (`redirects` in `astro.config.mjs`).
+- The share card is `public/og-default.png`, drawn by `node scripts/og-default.mjs` (commit the PNG after changing it).

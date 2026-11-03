@@ -33,7 +33,7 @@ const exercises = study.exercises.filter((e) => t.lectures.includes(e.num));
 <BaseLayout title={`${t.name}: track ${index + 1}`} description={t.blurb}>
   <Header slot="header" />
 
-  <main class="bk">
+  <div class="bk">
     <section class="bk-page bk-chapter" style={`--c: ${t.color}; padding-top: 3rem`}>
       <div class="bk-chapter-head">
         <span class="bk-bignum" aria-hidden="true">{index + 1}</span>
@@ -89,7 +89,7 @@ const exercises = study.exercises.filter((e) => t.lectures.includes(e.num));
           : <a class="next" href="/#tracks"><small>that was the last track</small><b>All eight tracks</b></a>}
       </nav>
     </section>
-  </main>
+  </div>
 
   <Footer slot="footer" />
 </BaseLayout>

@@ -126,7 +126,7 @@ const displayTitle = isLecture ? title.replace(/^Lecture \d\d:\s*/, '') : title;
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   <Header slot="header" />
 
-  <main class="bk">
+  <div class="bk">
     <header class="bk-page bk-head">
       {isLecture ? (
         <p class="bk-label">
@@ -222,7 +222,7 @@ const displayTitle = isLecture ? title.replace(/^Lecture \d\d:\s*/, '') : title;
         </div>
       </aside>
     </div>
-  </main>
+  </div>
 
   <Footer slot="footer" />
 

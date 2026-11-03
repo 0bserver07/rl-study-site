@@ -32,6 +32,9 @@ import { remarkDropcap } from './src/utils/remark-dropcap.ts';
 export default defineConfig({
   site: 'https://rl.yad.codes',
 
+  // The theme's /posts/ index (growth stats, date order) isn't part of this site.
+  redirects: { '/posts': '/library/' },
+
   integrations: [
     mdx(),
     sitemap(),

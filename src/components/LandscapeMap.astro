@@ -34,7 +34,7 @@ const titleOf = (num: string) => lectureByNum.get(num)?.title ?? `Lecture ${num}
       const count = track?.lectures.length ?? 0;
       return (
         <article class="lm-card" style={`--lm-color: ${track?.color ?? '#888'}`}>
-          <h3 class="lm-name"><a href={`/posts/tag/${f.track}/`}>{f.name}</a></h3>
+          <h3 class="lm-name"><a href={`/tracks/${f.track}/`}>{f.name}</a></h3>
           <dl class="lm-answers">
             <div><dt>Reward</dt><dd>{f.reward}</dd></div>
             <div><dt>Data</dt><dd>{f.data}</dd></div>

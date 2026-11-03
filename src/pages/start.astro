@@ -25,7 +25,7 @@ const ready = [
 <BaseLayout title="Start here" description="What to know before lecture 01, how long the whole thing takes, and a plan for the first week.">
   <Header slot="header" />
 
-  <main class="bk">
+  <div class="bk">
     <header class="bk-page bk-head">
       <p class="bk-label">start here</p>
       <h1>Before you start</h1>
@@ -91,7 +91,7 @@ const ready = [
         If a lecture says something that looks wrong, check the cited paper. Fixing an error in an unreviewed lecture, and noting what was wrong, is the most useful kind of contribution here.
       </p>
     </section>
-  </main>
+  </div>
 
   <Footer slot="footer" />
 </BaseLayout>
@@ -99,7 +99,7 @@ const ready = [
 <script>
   // Self-check: remember the ticks in this browser.
   function initReady() {
-    const boxes = Array.from(document.querySelectorAll<HTMLInputElement>('[data-ready]'));
+    const boxes = Array.from(document.querySelectorAll<HTMLInputElement>('#ready-card input[data-ready]'));
     const note = document.querySelector('[data-ready-note]');
     if (!boxes.length || !note) return;
     let saved: number[] = [];

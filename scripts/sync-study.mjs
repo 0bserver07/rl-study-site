@@ -194,8 +194,8 @@ const git = (...args) => {
 function firstParagraph(body) {
   for (const para of body.split(/\n\s*\n/)) {
     const p = para.trim();
-    if (!p || /^(#|---|\*\*Time\*\*|```|\||>|- |\d+\. |<)/.test(p)) continue;
-    const text = p.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/[*_`]/g, '').replace(/\s+/g, ' ');
+    if (!p || /^(#|---|\*\*(Time|Duration|Prerequisites?):?\*\*|```|\||>|- |\d+\. |<)/.test(p)) continue;
+    const text = p.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/[*`]/g, '').replace(/(^|\W)_+(?=\w)|(?<=\w)_+(?=\W|$)/g, '$1').replace(/\s+/g, ' ').replace(/^Goal: /, '');
     if (text.length <= 220) return text;
     const cut = text.slice(0, 220);
     return cut.slice(0, cut.lastIndexOf(' ')) + '…';
@@ -263,7 +263,7 @@ for (const [i, num] of order.entries()) {
     .filter((l) => l !== titleLine)
     .filter((l) => !/^<!--\s*status:/.test(l))
     .filter((l) => !/^_Unreviewed: .*_$/.test(l))
-    .filter((l) => !/^\*\*(Time|Prerequisites?)\*\*/.test(l))
+    .filter((l) => !/^\*\*(Time|Duration|Prerequisites?):?\*\*/.test(l))
     .join('\n')
     .replace(/^\s+/, '');
 
@@ -415,7 +415,7 @@ function statusHtml(status, rel) {
   return '';
 }
 const sourceLine = (rel) => `<p class="bk-meta">Source: <a href="${gh(rel)}">${rel}</a> on GitHub.</p>`;
-function writeDoc(rel, slug, { title, description = '', before = '', after = '' } = {}) {
+function writeDoc(rel, slug, { title, description, before = '', after = '' } = {}) {
   const doc = parseDoc(rel);
   const unresolved = [];
   const body = rewriteLinks(doc.body, path.posix.dirname(rel), unresolved);
@@ -424,7 +424,7 @@ function writeDoc(rel, slug, { title, description = '', before = '', after = '' 
     console.warn(`sync-study: ${rel}: left ${unresolved.length} unresolved link(s): ${unresolved.join(', ')}`);
   }
   const head = statusHtml(doc.status, rel);
-  writePage(slug, { title: title || doc.title, description }, [head, before, body, after, head ? '' : sourceLine(rel)].filter(Boolean).join('\n\n'));
+  writePage(slug, { title: title || doc.title, description: description || firstParagraph(doc.body) }, [head, before, body, after, head ? '' : sourceLine(rel)].filter(Boolean).join('\n\n'));
   return title || doc.title;
 }
 

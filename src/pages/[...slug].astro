@@ -45,7 +45,7 @@ const wide = ['curriculum', 'watch', 'diagrams', 'library'].includes(page.id) ||
 <BaseLayout title={page.data.title} description={page.data.description}>
   <Header slot="header" />
 
-  <main class="bk">
+  <div class="bk">
     <header class="bk-page bk-head" style={wide ? 'max-width: 56rem' : undefined}>
       {kicker && <p class="bk-label">{kicker}</p>}
       <h1>{page.data.title}</h1>
@@ -60,7 +60,7 @@ const wide = ['curriculum', 'watch', 'diagrams', 'library'].includes(page.id) ||
         {page.id === 'about' && <Signup />}
       </article>
     </div>
-  </main>
+  </div>
 
   <Footer slot="footer" />
 </BaseLayout>
