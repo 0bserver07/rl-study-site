@@ -39,9 +39,9 @@ Figure 2 is the smallest version of that I know. The +1 is nine steps from the s
 
 Most of the core ideas are older than the deep learning boom. Richard Sutton published temporal-difference learning in 1988: update a prediction toward the next prediction instead of waiting for the final outcome. Chris Watkins introduced Q-learning in his 1989 PhD thesis, the algorithm in Figure 2. Ronald Williams published REINFORCE in 1992, which is still how you take a gradient through a choice you can't differentiate.
 
-Then, in 1997, Wolfram Schultz, Peter Dayan and Read Montague showed that dopamine neurons in monkeys respond the way the TD error does: they fire for rewards that weren't predicted, and dip when a predicted reward doesn't show up. A learning rule people wrote down for machines matched something brains already do. I don't know how far to push that. It's not nothing.
+Then the brain showed up. In 1996, Read Montague, Peter Dayan and Terry Sejnowski proposed that dopamine neurons signal something like the TD error, and in 1997 Wolfram Schultz, Dayan and Montague made the case in Science with Schultz's recordings from monkeys. The neurons fire for a reward nobody predicted, and dip when a predicted reward doesn't arrive. A learning rule people wrote down for machines matched something brains already do. I don't know how far to push that. It's not nothing.
 
-Sutton and Andrew Barto's textbook came out in 1998. It's still the book, and the second edition is free online. In 2025 the two of them received the 2024 Turing Award for this work.
+Sutton and Andrew Barto's textbook came out in 1998. It's still the book, and [the second edition](http://incompleteideas.net/book/the-book-2nd.html) is free online. In March 2025, [ACM named the two of them](https://www.acm.org/media-center/2025/march/turing-award-2024) for the 2024 Turing Award, for laying the conceptual and algorithmic foundations of the field.
 
 ## Inside deep learning
 
@@ -56,16 +56,16 @@ And a 2016 note by [Pfau and Vinyals](https://arxiv.org/abs/1610.01945) points o
 
 ## Games, then not games
 
-This part you probably know. DeepMind's DQN learned Atari games from pixels and score, and the 2015 Nature version played 49 games with the same network and settings. AlphaGo beat Lee Sedol 4 games to 1 in March 2016. AlphaGo Zero learned Go without human games. AlphaZero did the same for chess and shogi, and MuZero learned without being given the rules. In 2019, OpenAI Five beat OG, the reigning Dota 2 world champions, and AlphaStar reached Grandmaster in StarCraft II.
+This part you probably know. DeepMind's DQN learned Atari games from pixels and score, and the 2015 Nature version played 49 games with the same network and settings. AlphaGo beat Lee Sedol 4 games to 1 in March 2016. AlphaGo Zero learned Go without human games. AlphaZero did the same for chess and shogi, and MuZero learned without being given the rules. In 2019, OpenAI Five beat OG, the reigning Dota 2 world champions, in a restricted version of the game (17 of the 117 heroes), and AlphaStar reached Grandmaster in StarCraft II.
 
 The results I find more convincing are the ones nobody built as a demo.
 
 - Fusion. [Degrave et al. (2022)](https://www.nature.com/articles/s41586-021-04301-9) shaped and held the plasma in a real tokamak, TCV in Lausanne, with an RL controller.
-- Balloons. [Bellemare et al. (2020)](https://www.nature.com/articles/s41586-020-2939-8) steered Loon's stratospheric balloons with an RL policy, in the actual stratosphere.
-- Algorithms. [AlphaTensor](https://www.nature.com/articles/s41586-022-05172-4) found faster matrix multiplication algorithms for some sizes, and [AlphaDev](https://www.nature.com/articles/s41586-023-06004-9) found short sorting routines that went into LLVM's libc++.
-- News. Back in 2010, [Li et al.](https://arxiv.org/abs/1003.0146) used a contextual bandit, a grown-up version of Figure 1, to pick front-page articles at Yahoo.
+- Balloons. [Bellemare et al. (2020)](https://www.nature.com/articles/s41586-020-2939-8) kept Loon's stratospheric balloons on station with an RL controller, including a 39-day test over the Pacific.
+- Algorithms. [AlphaDev](https://www.nature.com/articles/s41586-023-06004-9) found short sorting routines that went into LLVM's libc++. [AlphaTensor](https://www.nature.com/articles/s41586-022-05172-4) found ways to multiply some matrix sizes with fewer multiplications, though its famous 4×4 result only holds in mod-2 arithmetic, and [two mathematicians](https://arxiv.org/abs/2210.04045) beat one of its records three days later.
+- News. Back in 2010, [Li et al.](https://arxiv.org/abs/1003.0146) treated picking front-page stories at Yahoo as a contextual bandit, a grown-up version of Figure 1. On 33 million logged events it got 12.5% more clicks than a bandit that ignored context.
 
-<p class="draft-note">Fact-check pending: data center cooling (DeepMind's reported number), chip floorplanning (Nature 2021, and the public dispute), and OpenAI's Rubik's cube hand. Add only the ones the sources support.</p>
+Not every result held up this cleanly. Google's [2021 Nature paper](https://www.nature.com/articles/s41586-021-03544-w) on laying out chips with RL has been argued over in public since 2023. Independent re-evaluations found the method behind older tools, Google says those tests didn't pre-train it or give it enough compute, and the paper was never retracted.
 
 ## Language models
 
@@ -75,7 +75,9 @@ In 2017, [Christiano et al.](https://arxiv.org/abs/1706.03741) trained agents fr
 
 In 2023, [DPO](https://arxiv.org/abs/2305.18290) showed you could get a lot of the same effect without an RL loop, as a classification loss on pairs of answers. For a while it looked like RL might get optimized out of training language models.
 
-It didn't. [DeepSeekMath](https://arxiv.org/abs/2402.03300) introduced GRPO in 2024. OpenAI said o1 was trained with large-scale RL to reason. And in January 2025, [DeepSeek-R1](https://arxiv.org/abs/2501.12948) showed that RL on problems with checkable answers, math and code, could teach a model to reason at length. Its R1-Zero variant did it with no supervised fine-tuning first.
+It didn't. [DeepSeekMath](https://arxiv.org/abs/2402.03300) introduced GRPO in 2024. OpenAI said o1 was trained with large-scale RL to reason. And in January 2025, [DeepSeek-R1](https://arxiv.org/abs/2501.12948) showed that RL on problems with checkable answers, math and code, could teach a model to reason at length. Its R1-Zero variant did it with no supervised fine-tuning first. The agents came next. OpenAI said its [deep research](https://openai.com/index/introducing-deep-research/) agent was trained with RL on hard browsing tasks, and that codex-1, the model behind its [Codex](https://openai.com/index/introducing-codex/) coding agent, was trained with RL on real coding tasks, iterating on tests until they pass.
+
+Whether that RL teaches a model anything new is still argued about. [Yue et al. (2025)](https://arxiv.org/abs/2504.13837) found that base models beat their RL-trained versions when both get many attempts, which suggests RL mostly sharpens what was already there. I don't think that's settled.
 
 The gradient underneath GRPO is still the one from Williams's 1992 paper.
 
@@ -85,7 +87,7 @@ My own path went from RL to program synthesis, then NLP with RL, then language m
 
 <p class="draft-note">Draft note: one honest sentence on whether RL really kept showing up for you in each of those, and where. Don't keep a line here that isn't true for you.</p>
 
-Sutton wrote in 2019 that the methods that win in the long run are the general ones that keep getting better with more compute, which to him means search and learning. He called it [The Bitter Lesson](http://www.incompleteideas.net/IncIdeas/BitterLesson.html). In 2021 he, David Silver, Satinder Singh and Doina Precup argued something bigger, that [reward is enough](https://www.sciencedirect.com/science/article/pii/S0004370221000862): maximizing reward could account for most of what we call intelligence. I don't know if that's right. I'm not sure anyone does yet.
+Sutton wrote in 2019 that the methods that win in the long run are the general ones that keep getting better with more compute, which to him means search and learning. He called it [The Bitter Lesson](http://www.incompleteideas.net/IncIdeas/BitterLesson.html). In 2021 he, David Silver, Satinder Singh and Doina Precup argued something bigger, that [reward is enough](https://doi.org/10.1016/j.artint.2021.103535): maximizing reward could account for most of what we call intelligence. I don't know if that's right. I'm not sure anyone does yet.
 
 But if you build things with machine learning, sooner or later you'll want to optimize something you can't write a loss for. Whether a person liked the answer. Whether the program passed its tests. Whether the robot stayed upright. That's reinforcement learning, whatever you end up calling it.
 
