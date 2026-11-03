@@ -66,7 +66,8 @@ To cut a release:
 ## Run it
 
 ```bash
-git submodule update --init      # first time only
+git clone --recurse-submodules git@github.com:0bserver07/rl-study-site.git   # on a new machine
+git submodule update --init      # if you cloned without --recurse-submodules
 npm ci --ignore-scripts          # install scripts aren't needed
 npm run dev                      # syncs, then serves on http://localhost:4321
 npm run build                    # syncs, then builds to dist/
@@ -78,7 +79,7 @@ npx astro preview --host 100.110.48.128 --port 4321 --allowed-hosts tmos-hq,tmos
 
 ## Publishing
 
-The repo is https://github.com/0bserver07/rl-study-site (the local `study-site` branch pushes to its `master`). `.github/workflows/deploy.yml` builds `master` with the pinned `study/` submodule and publishes `dist/` to GitHub Pages; `ci.yml` builds pull requests. The Pages environment deploys only from `master`.
+The repo is https://github.com/0bserver07/rl-study-site; work on `master`, and every push to it redeploys. `.github/workflows/deploy.yml` builds `master` with the pinned `study/` submodule and publishes `dist/` to GitHub Pages; `ci.yml` builds pull requests. The Pages environment deploys only from `master`.
 
 The custom domain is `rl.yad.codes` (set in the repo's Pages settings, and as `site:` in `astro.config.mjs` and `src/config.ts`). It needs one DNS record where yad.codes is managed: `CNAME rl → 0bserver07.github.io`. Once GitHub has issued the certificate, turn on "Enforce HTTPS" in the Pages settings. Links are written from the site root (`/posts/...`), so the site needs a domain of its own: the bare `0bserver07.github.io/rl-study-site/` address serves the HTML without its styles, and redirects to the custom domain once that is set.
 
