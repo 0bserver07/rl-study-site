@@ -1,0 +1,94 @@
+import Bandit from '../components/roadmap/Bandit.astro';
+import GridLearner from '../components/roadmap/GridLearner.astro';
+
+<p class="draft-note">Draft note: open with the actual GTA moment. What did you see the first time the car "drove"? How did you get frames and steering out of the game? One or two specific sentences, your words.</p>
+
+My way into reinforcement learning was a car in GTA San Andreas. I wanted it to drive itself.
+
+What I ended up with, in January 2017, was [a Keras version](https://github.com/0bserver07/Nvidia-Autopilot-Keras) of NVIDIA's end-to-end driving model: a network that looks at a frame and outputs a steering angle. NVIDIA's paper says it learned "with only the human steering angle as the training signal" ([Bojarski et al. 2016](https://arxiv.org/abs/1604.07316)). So it wasn't reinforcement learning. It was copying a person. The car was never told whether a turn went well. It learned what a human would have done in the same frame.
+
+Learning from what a person did, versus learning from what happened when you tried something. That difference is the whole field. So before any history, try it yourself.
+
+## Three machines
+
+Each machine pays out some fraction of the time. You don't know which one is best, and you get 20 pulls.
+
+<div class="essay-fig">
+<Bandit caption="<b>Figure 1.</b> Three slot machines with hidden payout rates, shuffled every time you press New machines. Play your 20 pulls, then let an agent play the same three." />
+</div>
+
+If you pulled each one a few times and then stuck with whichever looked best, you did roughly what the agent does. It's called epsilon-greedy. Pull the machine with the best average so far, and one time in ten pull a random one, in case your averages are lying to you. On these machines it averages about 11.5 out of 20. Pulling at random gets about 9.7. Knowing the best machine from the start would get 14.
+
+The gap between 11.5 and 14 is what it costs to find out. Smarter strategies pay less of it. None of them pay nothing.
+
+And notice what you never got. Nobody showed you a labeled example. Nobody told you which machine was right. You got a number back for the machine you pulled, and nothing at all about the two you didn't. That's the whole setup of reinforcement learning, and it's a strange one next to the rest of machine learning.
+
+## Labels and rewards
+
+In supervised learning every example comes with the answer. Get it wrong and the loss tells you how wrong, and which way to move.
+
+In RL you get a reward, only for the action you took. You don't learn what the other actions would have given you. And the reward is usually late. A game of chess is won or lost at the end, not on the move where it was decided. Working out which earlier move deserves the credit is its own problem, credit assignment, and I wouldn't call it solved.
+
+Figure 2 is the smallest version of that I know. The +1 is nine steps from the start, and the agent only feels it when it gets there. Watch the green spread backward from the goal. That's the agent working out, one update at a time, which earlier squares led to the reward.
+
+<div class="essay-fig">
+<GridLearner caption="<b>Figure 2.</b> Q-learning on a small grid, the same as on this site's home page. Run shows every step; Train 50 episodes skips ahead. The reward only exists in one square, and the values spread back from it." />
+</div>
+
+## Older than deep learning
+
+Most of the core ideas are older than the deep learning boom. Richard Sutton published temporal-difference learning in 1988: update a prediction toward the next prediction instead of waiting for the final outcome. Chris Watkins introduced Q-learning in his 1989 PhD thesis, the algorithm in Figure 2. Ronald Williams published REINFORCE in 1992, which is still how you take a gradient through a choice you can't differentiate.
+
+Then, in 1997, Wolfram Schultz, Peter Dayan and Read Montague showed that dopamine neurons in monkeys respond the way the TD error does: they fire for rewards that weren't predicted, and dip when a predicted reward doesn't show up. A learning rule people wrote down for machines matched something brains already do. I don't know how far to push that. It's not nothing.
+
+Sutton and Andrew Barto's textbook came out in 1998. It's still the book, and the second edition is free online. In 2025 the two of them received the 2024 Turing Award for this work.
+
+## Inside deep learning
+
+This is the part I think people outside RL miss. RL methods got used as tools inside ordinary deep learning, any time the thing you wanted to optimize had no gradient.
+
+- Where to look. [Mnih et al. (2014)](https://arxiv.org/abs/1406.6247) trained a model to choose which part of an image to look at next, with REINFORCE, because picking a location isn't differentiable.
+- Which network to build. [Zoph and Le (2017)](https://arxiv.org/abs/1611.01578) had a controller propose architectures and rewarded it with the validation accuracy of what it proposed.
+- What metric to train on. [Ranzato et al. (2016)](https://arxiv.org/abs/1511.06732) and [Rennie et al. (2017)](https://arxiv.org/abs/1612.00563) trained text generation and captioning directly on the scores they're judged by, BLEU and CIDEr, with policy gradients.
+- How to augment data. [AutoAugment](https://arxiv.org/abs/1805.09501) searched for augmentation policies with an RL controller.
+
+And a 2016 note by [Pfau and Vinyals](https://arxiv.org/abs/1610.01945) points out that GANs and actor-critic methods have the same shape: one network acts, another judges, and they train against each other.
+
+## Games, then not games
+
+This part you probably know. DeepMind's DQN learned Atari games from pixels and score, and the 2015 Nature version played 49 games with the same network and settings. AlphaGo beat Lee Sedol 4 games to 1 in March 2016. AlphaGo Zero learned Go without human games. AlphaZero did the same for chess and shogi, and MuZero learned without being given the rules. In 2019, OpenAI Five beat OG, the reigning Dota 2 world champions, and AlphaStar reached Grandmaster in StarCraft II.
+
+The results I find more convincing are the ones nobody built as a demo.
+
+- Fusion. [Degrave et al. (2022)](https://www.nature.com/articles/s41586-021-04301-9) shaped and held the plasma in a real tokamak, TCV in Lausanne, with an RL controller.
+- Balloons. [Bellemare et al. (2020)](https://www.nature.com/articles/s41586-020-2939-8) steered Loon's stratospheric balloons with an RL policy, in the actual stratosphere.
+- Algorithms. [AlphaTensor](https://www.nature.com/articles/s41586-022-05172-4) found faster matrix multiplication algorithms for some sizes, and [AlphaDev](https://www.nature.com/articles/s41586-023-06004-9) found short sorting routines that went into LLVM's libc++.
+- News. Back in 2010, [Li et al.](https://arxiv.org/abs/1003.0146) used a contextual bandit, a grown-up version of Figure 1, to pick front-page articles at Yahoo.
+
+<p class="draft-note">Fact-check pending: data center cooling (DeepMind's reported number), chip floorplanning (Nature 2021, and the public dispute), and OpenAI's Rubik's cube hand. Add only the ones the sources support.</p>
+
+## Language models
+
+This is where RL stopped being a niche.
+
+In 2017, [Christiano et al.](https://arxiv.org/abs/1706.03741) trained agents from human preferences. Show a person two short clips, ask which is better, learn a reward model from the answers, then optimize against it. In 2020, OpenAI used the same recipe to [train summarizers](https://arxiv.org/abs/2009.01325). In 2022 came [InstructGPT](https://arxiv.org/abs/2203.02155): people preferred the outputs of a 1.3B-parameter model trained this way over the 175B-parameter GPT-3. ChatGPT came out that November, trained with the same method, RLHF. Anthropic's [Constitutional AI](https://arxiv.org/abs/2212.08073) replaced much of the human feedback with feedback from a model.
+
+In 2023, [DPO](https://arxiv.org/abs/2305.18290) showed you could get a lot of the same effect without an RL loop, as a classification loss on pairs of answers. For a while it looked like RL might get optimized out of training language models.
+
+It didn't. [DeepSeekMath](https://arxiv.org/abs/2402.03300) introduced GRPO in 2024. OpenAI said o1 was trained with large-scale RL to reason. And in January 2025, [DeepSeek-R1](https://arxiv.org/abs/2501.12948) showed that RL on problems with checkable answers, math and code, could teach a model to reason at length. Its R1-Zero variant did it with no supervised fine-tuning first.
+
+The gradient underneath GRPO is still the one from Williams's 1992 paper.
+
+## Why it's worth knowing anyway
+
+My own path went from RL to program synthesis, then NLP with RL, then language models.
+
+<p class="draft-note">Draft note: one honest sentence on whether RL really kept showing up for you in each of those, and where. Don't keep a line here that isn't true for you.</p>
+
+Sutton wrote in 2019 that the methods that win in the long run are the general ones that keep getting better with more compute, which to him means search and learning. He called it [The Bitter Lesson](http://www.incompleteideas.net/IncIdeas/BitterLesson.html). In 2021 he, David Silver, Satinder Singh and Doina Precup argued something bigger, that [reward is enough](https://www.sciencedirect.com/science/article/pii/S0004370221000862): maximizing reward could account for most of what we call intelligence. I don't know if that's right. I'm not sure anyone does yet.
+
+But if you build things with machine learning, sooner or later you'll want to optimize something you can't write a loss for. Whether a person liked the answer. Whether the program passed its tests. Whether the robot stayed upright. That's reinforcement learning, whatever you end up calling it.
+
+If you want to go through it properly, [the lectures here](/curriculum/) start with Figure 1's problem and end with GRPO, and the [exercises](/exercises/) have tests that only pass when your code is right.
+
+Or maybe I just see RL everywhere because I went looking for it in 2016. That's possible too.

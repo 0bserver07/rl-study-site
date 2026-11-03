@@ -1,0 +1,164 @@
+---
+/**
+ * Bandit: three slot machines, a fixed number of pulls, and no one telling you
+ * which machine is best. The reader plays first; then an epsilon-greedy agent
+ * plays the same machines, and the figure compares its average over many runs
+ * with pulling at random and with always pulling the best machine. It's the
+ * explore/exploit problem from lecture 01 and Sutton & Barto chapter 2.
+ */
+interface Props { caption?: string; pulls?: number }
+const { caption, pulls = 20 } = Astro.props;
+const NAMES = ['A', 'B', 'C'];
+---
+
+<figure class="bandit" data-bandit data-pulls={pulls}>
+  <div class="bd-machines">
+    {NAMES.map((n, i) => (
+      <div class="bd-machine" data-arm={i}>
+        <p class="bd-name">machine {n}</p>
+        <button type="button" data-pull={i} aria-label={`Pull machine ${n}`}>Pull</button>
+        <p class="bd-tally"><span data-n>0</span> pulls, <span data-w>0</span> paid</p>
+        <p class="bd-true" data-true hidden></p>
+      </div>
+    ))}
+  </div>
+  <p class="bd-status" aria-live="polite">
+    <span data-left>{pulls}</span> pulls left · you've won <b data-total>0</b>
+  </p>
+  <div class="bd-after" data-after hidden>
+    <p data-yours></p>
+    <button type="button" data-agent>Let an agent play</button>
+    <table class="bd-compare" data-compare hidden>
+      <tbody>
+        <tr><th>You</th><td data-c-you></td></tr>
+        <tr><th>Pull at random</th><td data-c-rand></td></tr>
+        <tr><th>The agent (ε-greedy), 1,000 runs</th><td data-c-agent></td></tr>
+        <tr><th>Always the best machine</th><td data-c-best></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="bd-reset"><button type="button" data-reset>New machines</button></p>
+  {caption && <figcaption set:html={caption} />}
+</figure>
+
+<style>
+  .bandit { margin: 0; }
+  .bd-machines { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; }
+  .bd-machine { background: var(--box); border: 1.2px solid var(--ink); border-radius: 3px; padding: 0.7rem 0.75rem 0.6rem; text-align: center; }
+  .bd-machine.best { border-color: #2f6f3e; box-shadow: inset 0 0 0 1px #2f6f3e; }
+  .bd-name { font-family: var(--sc); font-weight: 700; letter-spacing: 0.03em; margin: 0 0 0.45rem !important; }
+  .bd-tally { font-size: 0.92rem; color: var(--ink-soft); margin: 0.45rem 0 0 !important; font-variant-numeric: lining-nums tabular-nums; }
+  .bd-true { font-family: var(--hand); color: var(--red); font-size: 1.05rem; margin: 0.25rem 0 0 !important; }
+  .bandit button { font-family: var(--sc); font-weight: 500; font-size: 1rem; letter-spacing: 0.02em; background: var(--box); color: var(--ink); border: 1.2px solid var(--ink); border-radius: 3px; padding: 0.15rem 0.8rem 0.25rem; cursor: pointer; }
+  .bandit button:hover:not(:disabled) { background: #fff6df; }
+  .bandit button:disabled { opacity: 0.4; cursor: default; }
+  .bandit button.flash-win { background: #dcebdc; }
+  .bandit button.flash-lose { background: #f1dcd6; }
+  .bd-status { margin: 0.8rem 0 0 !important; font-variant-numeric: lining-nums; }
+  .bd-after { margin-top: 0.6rem; }
+  .bd-after p { margin: 0 0 0.6rem !important; }
+  .bd-compare { margin: 0.8rem 0 0; border-collapse: collapse; font-size: 1rem; width: 100%; max-width: 30rem; }
+  .bd-compare th { text-align: left; font-weight: 400; color: var(--ink-soft); padding: 0.3rem 1rem 0.3rem 0; border-top: 1px solid var(--rule); }
+  .bd-compare td { text-align: right; font-weight: 700; font-variant-numeric: lining-nums tabular-nums; padding: 0.3rem 0; border-top: 1px solid var(--rule); }
+  .bd-reset { margin: 0.8rem 0 0 !important; }
+  .bandit figcaption { margin-top: 0.8rem; }
+  @media (max-width: 480px) { .bd-machines { gap: 0.4rem; } .bd-machine { padding: 0.55rem 0.3rem 0.5rem; } .bd-tally { font-size: 0.85rem; } }
+</style>
+
+<script>
+  // Payout probabilities: a shuffled set with a clear but not obvious best.
+  const PROBS = [0.25, 0.5, 0.7];
+  const EPS = 0.1;
+  const RUNS = 1000;
+
+  const shuffle = <T,>(a: T[]) => { const b = [...a]; for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
+  const pct = (p: number) => `${Math.round(p * 100)}%`;
+
+  // One run of epsilon-greedy: pull each machine once, then mostly the best average so far.
+  function epsGreedy(p: number[], pulls: number) {
+    const n = p.map(() => 0), w = p.map(() => 0);
+    let total = 0;
+    for (let t = 0; t < pulls; t++) {
+      let a: number;
+      if (t < p.length) a = t;
+      else if (Math.random() < EPS) a = Math.floor(Math.random() * p.length);
+      else { const avg = w.map((x, i) => x / n[i]); const top = Math.max(...avg); const ties = avg.flatMap((v, i) => (v === top ? [i] : [])); a = ties[Math.floor(Math.random() * ties.length)]; }
+      const r = Math.random() < p[a] ? 1 : 0;
+      n[a] += 1; w[a] += r; total += r;
+    }
+    return total;
+  }
+
+  function init(fig: HTMLElement) {
+    if (fig.dataset.ready) return;
+    fig.dataset.ready = '1';
+    const budget = Number(fig.dataset.pulls || 20);
+    const $ = <T extends Element>(s: string) => fig.querySelector(s) as T;
+    const $$ = (s: string) => Array.from(fig.querySelectorAll<HTMLElement>(s));
+    let p: number[] = [], n: number[] = [], w: number[] = [], left = budget, total = 0;
+
+    function render() {
+      $$('[data-arm]').forEach((m, i) => {
+        (m.querySelector('[data-n]') as HTMLElement).textContent = String(n[i]);
+        (m.querySelector('[data-w]') as HTMLElement).textContent = String(w[i]);
+      });
+      $<HTMLElement>('[data-left]').textContent = String(left);
+      $<HTMLElement>('[data-total]').textContent = String(total);
+      $$('[data-pull]').forEach((b) => ((b as HTMLButtonElement).disabled = left === 0));
+    }
+
+    function reset() {
+      p = shuffle(PROBS); n = [0, 0, 0]; w = [0, 0, 0]; left = budget; total = 0;
+      $<HTMLElement>('[data-after]').hidden = true;
+      $<HTMLElement>('[data-compare]').hidden = true;
+      $<HTMLButtonElement>('[data-agent]').disabled = false;
+      $$('[data-true]').forEach((e) => (e.hidden = true));
+      $$('[data-arm]').forEach((m) => m.classList.remove('best'));
+      render();
+    }
+
+    function finish() {
+      const after = $<HTMLElement>('[data-after]');
+      after.hidden = false;
+      $<HTMLElement>('[data-yours]').textContent = `You won ${total} out of ${budget}. Which machine do you think was best?`;
+    }
+
+    $$('[data-pull]').forEach((b, i) => b.addEventListener('click', () => {
+      if (left === 0) return;
+      const r = Math.random() < p[i] ? 1 : 0;
+      n[i] += 1; w[i] += r; total += r; left -= 1;
+      b.classList.remove('flash-win', 'flash-lose');
+      void b.offsetWidth; // restart the flash
+      b.classList.add(r ? 'flash-win' : 'flash-lose');
+      setTimeout(() => b.classList.remove('flash-win', 'flash-lose'), 250);
+      render();
+      if (left === 0) finish();
+    }));
+
+    $<HTMLButtonElement>('[data-agent]').addEventListener('click', (e) => {
+      (e.currentTarget as HTMLButtonElement).disabled = true;
+      let sum = 0;
+      for (let k = 0; k < RUNS; k++) sum += epsGreedy(p, budget);
+      const mean = p.reduce((a, b) => a + b, 0) / p.length;
+      const best = Math.max(...p);
+      $<HTMLElement>('[data-c-you]').textContent = String(total);
+      $<HTMLElement>('[data-c-rand]').textContent = `${(budget * mean).toFixed(1)} on average`;
+      $<HTMLElement>('[data-c-agent]').textContent = `${(sum / RUNS).toFixed(1)} on average`;
+      $<HTMLElement>('[data-c-best]').textContent = `${(budget * best).toFixed(1)} on average`;
+      $<HTMLElement>('[data-compare]').hidden = false;
+      $$('[data-arm]').forEach((m, i) => {
+        const t = m.querySelector('[data-true]') as HTMLElement;
+        t.textContent = `paid ${pct(p[i])} of the time`;
+        t.hidden = false;
+        if (p[i] === best) m.classList.add('best');
+      });
+    });
+
+    $<HTMLButtonElement>('[data-reset]').addEventListener('click', reset);
+    reset();
+  }
+
+  function start() { document.querySelectorAll<HTMLElement>('[data-bandit]').forEach(init); }
+  document.addEventListener('DOMContentLoaded', start);
+  document.addEventListener('astro:page-load', start);
+</script>

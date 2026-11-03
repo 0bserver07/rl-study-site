@@ -1,0 +1,44 @@
+---
+/**
+ * /why/: an essay on why reinforcement learning is worth knowing, with the
+ * bandit (Figure 1) and the gridworld (Figure 2) running inside the text.
+ * The words live in src/essays/why-rl.mdx.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import Signup from '../components/roadmap/Signup.astro';
+import Essay from '../essays/why-rl.mdx';
+
+const title = 'Why I keep coming back to reinforcement learning';
+const description = 'Play three slot machines first. Then the same idea, from 1988 to the way language models are trained now.';
+---
+
+<BaseLayout title={title} description={description}>
+  <Header slot="header" />
+
+  <div class="bk">
+    <header class="bk-page bk-head">
+      <p class="bk-label">an essay</p>
+      <h1>{title}</h1>
+      <p class="bk-dek" style="margin: 0">{description}</p>
+      <p class="bk-essay-byline">by <a href="/about/">Yad Konrad</a> · November 2026</p>
+    </header>
+
+    <article class="bk-page prose-mycelium bk-essay">
+      <Essay />
+    </article>
+
+    <div class="bk-page"><Signup /></div>
+  </div>
+
+  <Footer slot="footer" />
+</BaseLayout>
+
+<style is:global>
+  .bk-essay-byline { font-family: var(--sc); font-weight: 500; letter-spacing: 0.03em; color: var(--muted); margin: 1rem 0 0; }
+  .bk-essay-byline a { color: var(--ink); text-decoration-color: var(--red); }
+  .bk-essay { padding-bottom: 0.5rem; }
+  .bk-essay .essay-fig { margin: 2.2rem 0; }
+  .bk-essay .draft-note { font-family: var(--hand); color: var(--red); border: 1.5px dashed var(--red); border-radius: 4px; padding: 0.5rem 0.8rem; background: #fff6f3; font-size: 1.05rem; line-height: 1.4; }
+</style>
