@@ -24,6 +24,7 @@ A site for [Study-Reinforcement-Learning](https://github.com/0bserver07/Study-Re
 - `/start/`: what to know first with a self-check (remembered in the browser), the study planner, week one, and what to do when stuck.
 - `/tracks/<id>/`: one page per track.
 - `/posts/<slug>/`: the lectures. `/library/`: everything.
+- `/why/`: an essay (`src/essays/why-rl.mdx`, page `src/pages/why.astro`) with the playable bandit (`src/components/roadmap/Bandit.astro`) and the gridworld. The same essay is on yad.codes (garden repo: `src/content/posts/why-i-keep-coming-back-to-reinforcement-learning.mdx`, figures in `src/components/rl/`); keep the two copies in step.
 
 ## Design
 

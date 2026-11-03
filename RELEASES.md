@@ -2,6 +2,13 @@
 
 Versions of this site. The lectures, notes, and exercises have their own history in the study repo's [changelog](/changelog/). Each release here names the study repo commit it was built from.
 
+## 0.3.0 (2026-11-03)
+
+Built from the study repo at commit `1b7eae8`.
+
+- A new page, [Why I keep coming back to reinforcement learning](/why/): an essay with three slot machines you can play against an epsilon-greedy agent, and the gridworld from the home page.
+- All 13 diagrams on the diagrams page render. Three of them showed mermaid's syntax error because some labels had unquoted parentheses (fixed in the study repo, pull request #16).
+
 ## 0.2.0 (2026-11-03)
 
 Built from the study repo at commit `82eda54`.
