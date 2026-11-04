@@ -1,0 +1,223 @@
+---
+/**
+ * ExplorationChain: two tabular Q-learning agents on a combination lock, side by
+ * side. The lock: 16 squares (0 to 15), start at 0. Moving right goes to the next
+ * square. Moving left is the wrong move: it ends the episode with reward 0 (there is
+ * no next square, so no bonus either). Entering square 15 gives +1 and ends the
+ * episode, so an episode lasts at most 15 moves.
+ * Both agents use exercise 20's settings: alpha 0.5, gamma 0.99, epsilon 0.1, Q
+ * starts at 0. Greedy ties are broken at random. Until the plain agent first reaches
+ * the +1 all its Q-values stay 0, so it moves at random and gets through about once
+ * in 2^15 = 32,768 episodes.
+ * The second agent also gets a novelty bonus BETA / sqrt(N(s')) added to the reward
+ * for reaching s', where N(s') counts arrivals at s' (this one included). It's the
+ * tabular stand-in for the RND bonus of exercise 20 (the error of a network trained
+ * to match a fixed random network), which also shrinks as a state gets familiar.
+ * Exercise 20's own chain is gentler: a move left goes back one square.
+ * Shading is how often each square has been visited (the start counts once per
+ * episode; log scale shared by both strips); the caret marks the furthest square
+ * reached. Hover a square for its count and Q-values.
+ */
+interface Props { caption?: string }
+const { caption } = Astro.props;
+
+const NS = 16;
+const W = 400, H = 50;
+const X0 = 10, STEP = 23.5, CELL = 22, Y = 11; // square i spans X0 + STEP * i .. + CELL
+const AGENTS = [
+  { key: 'plain', name: '-greedy alone', bonus: '', label: 'Agent 1, epsilon-greedy alone' },
+  { key: 'bonus', name: '-greedy + novelty bonus', bonus: '0.1/√N', label: 'Agent 2, epsilon-greedy with a novelty bonus' },
+];
+---
+
+<figure class="ex-chain" data-exchain data-geom={JSON.stringify({ NS, X0, STEP, CELL, Y })}>
+  {AGENTS.map((ag) => (
+    <div class="ex-agent" data-agent={ag.key}>
+      <p class="ex-name"><span class="ex-math">ε</span>{ag.name}{ag.bonus && <> <span class="ex-math">{ag.bonus}</span></>}</p>
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${ag.label}: a lock of ${NS} squares from the start on the left to a +1 on the right. Shading shows how often each square has been visited.`}>
+        {Array.from({ length: NS }, (_, i) => (
+          <rect class:list={['sq', { goal: i === NS - 1 }]} x={X0 + STEP * i} y={Y} width={CELL} height={CELL} data-sq={i}><title></title></rect>
+        ))}
+        <text class="plus" x={X0 + STEP * (NS - 1) + CELL / 2} y={Y + CELL / 2 + 4} text-anchor="middle">+1</text>
+        <text class="end-label" x={X0} y={H - 3}>start</text>
+        <path class="far" d="" data-far />
+        <path class="wrong" d="" data-wrong />
+        <circle class="dot" r="6" cx={X0 + CELL / 2} cy={Y + CELL / 2} data-dot />
+      </svg>
+      <p class="ex-stats" aria-live="polite">
+        <span>furthest square <b data-furthest>0</b></span>
+        <span>reached the goal in <b data-goals>0</b> of <b data-eps>0</b> episodes</span>
+        <span data-last>no episodes yet</span>
+      </p>
+    </div>
+  ))}
+
+  <div class="ex-controls">
+    <button type="button" data-run aria-pressed="false">Run</button>
+    <button type="button" data-fast>Train 50 episodes</button>
+    <button type="button" data-reset>Reset</button>
+  </div>
+  <p class="ex-note" aria-live="polite">episodes <b data-episodes>0</b> <span class="ex-key">shading: how often a square has been visited (darker is more, on a log scale); caret: the furthest square; ×: a wrong move ended the episode there</span></p>
+
+  {caption && <figcaption set:html={caption} />}
+</figure>
+
+<style>
+  .ex-chain { margin: 0; }
+  .ex-agent { margin: 0 0 0.55rem; }
+  .ex-name { font-family: var(--sc); font-weight: 500; font-size: 1rem; letter-spacing: 0.02em; color: var(--ink); margin: 0 0 0.15rem !important; }
+  .ex-math { font-family: var(--text); font-style: italic; letter-spacing: 0; font-variant-numeric: lining-nums; }
+  .ex-agent svg { width: 100%; height: auto; display: block; border: 1.2px solid var(--ink); background: var(--box); }
+  .ex-agent .sq { fill: var(--box); stroke: var(--rule); stroke-width: 1; transition: fill 0.2s; }
+  .ex-agent .sq.goal { fill: rgb(170 202 172); stroke: #2f6f3e; }
+  .ex-agent .plus { font-family: var(--text); font-weight: 800; font-size: 11px; fill: #2f6f3e; pointer-events: none; }
+  .ex-agent .end-label { font-family: var(--sc); font-weight: 500; font-size: 11px; fill: var(--muted); }
+  .ex-agent .far { fill: var(--ink); }
+  .ex-agent .wrong { fill: none; stroke: var(--red); stroke-width: 2.2; stroke-linecap: round; pointer-events: none; }
+  .ex-agent .dot { fill: var(--ink); stroke: #fff; stroke-width: 1.6; pointer-events: none; }
+  .ex-stats { display: flex; flex-wrap: wrap; gap: 0.1rem 1.1rem; font-size: 0.95rem; color: var(--ink-soft); margin: 0.2rem 0 0 !important; }
+  .ex-stats b, .ex-note b { color: var(--ink); font-variant-numeric: lining-nums tabular-nums; }
+  .ex-stats [data-last] { font-variant-numeric: lining-nums; }
+  .ex-controls { display: flex; gap: 0.6rem; flex-wrap: wrap; margin: 0.8rem 0 0.4rem; }
+  .ex-chain button { font-family: var(--sc); font-weight: 500; font-size: 1rem; letter-spacing: 0.02em; background: var(--box); color: var(--ink); border: 1.2px solid var(--ink); border-radius: 3px; padding: 0.15rem 0.7rem 0.25rem; cursor: pointer; }
+  .ex-chain button:hover { background: #fff6df; }
+  .ex-chain button[aria-pressed=true] { background: var(--ink); color: var(--paper); }
+  .ex-note { font-size: 0.95rem; color: var(--ink-soft); margin: 0 !important; }
+  .ex-key { display: block; font-size: 0.88rem; color: var(--muted); }
+  @media (max-width: 480px) { .ex-chain button { font-size: 0.92rem; padding: 0.1rem 0.55rem 0.2rem; } }
+  @media (prefers-reduced-motion: reduce) { .ex-agent .sq { transition: none; } }
+</style>
+
+<script>
+  // The lock: 16 squares, the +1 on the last. Exercise 20's agent settings.
+  const NS = 16, GOAL = NS - 1;
+  const ALPHA = 0.5, GAMMA = 0.99, EPS = 0.1;
+  const BETA = 0.1;                       // novelty bonus BETA / sqrt(N(s'))
+  const STEP_MS = 90, END_PAUSE_MS = 450; // Run: one move of both agents every 90 ms, a pause after each episode
+
+  type Geom = { NS: number; X0: number; STEP: number; CELL: number; Y: number };
+  type Agent = {
+    bonus: boolean;
+    Q: number[][];    // Q[s] = [left, right]
+    visits: number[]; // times on each square: square 0 once per episode, the rest on arrival (= N)
+    far: number;      // furthest square reached since Reset
+    goals: number;    // episodes that reached the +1
+    s: number; done: boolean; // the episode in progress
+    lastEnd: number | null; lastGoal: boolean; // where and how the last finished episode ended
+  };
+
+  const newAgent = (bonus: boolean): Agent => ({ bonus, Q: Array.from({ length: NS }, () => [0, 0]), visits: new Array(NS).fill(0), far: 0, goals: 0, s: 0, done: true, lastEnd: null, lastGoal: false });
+
+  // epsilon-greedy, ties broken at random
+  function act(ag: Agent) {
+    if (Math.random() < EPS) return Math.random() < 0.5 ? 0 : 1;
+    const [l, r] = ag.Q[ag.s];
+    return r > l ? 1 : r < l ? 0 : Math.random() < 0.5 ? 0 : 1;
+  }
+  function startEpisode(ag: Agent) { ag.s = 0; ag.done = false; ag.visits[0] += 1; }
+  function stepAgent(ag: Agent) {
+    const s = ag.s, a = act(ag);
+    if (a === 0) {
+      // the wrong move: the episode ends with reward 0, nothing to bootstrap from
+      ag.Q[s][0] += ALPHA * (0 - ag.Q[s][0]);
+      ag.done = true; ag.lastEnd = s; ag.lastGoal = false;
+      return;
+    }
+    const s2 = s + 1;
+    ag.visits[s2] += 1;
+    const bonus = ag.bonus ? BETA / Math.sqrt(ag.visits[s2]) : 0;
+    const goal = s2 === GOAL;
+    const target = (goal ? 1 : 0) + bonus + (goal ? 0 : GAMMA * Math.max(ag.Q[s2][0], ag.Q[s2][1]));
+    ag.Q[s][1] += ALPHA * (target - ag.Q[s][1]);
+    ag.s = s2;
+    ag.far = Math.max(ag.far, s2);
+    if (goal) { ag.done = true; ag.goals += 1; ag.lastEnd = s2; ag.lastGoal = true; }
+  }
+
+  function initExplorationChain(root: HTMLElement) {
+    if (root.dataset.ready) return;
+    root.dataset.ready = '1';
+    const G: Geom = JSON.parse(root.dataset.geom || '{}');
+    const $ = (sel: string) => root.querySelector(sel) as HTMLElement;
+    const views = ['plain', 'bonus'].map((k) => root.querySelector(`[data-agent="${k}"]`) as HTMLElement);
+
+    let agents: Agent[] = [];
+    let episodes = 0;
+    let timer: number | null = null;
+
+    function reset() {
+      agents = [newAgent(false), newAgent(true)];
+      episodes = 0;
+      draw();
+    }
+    // One move of each agent still in the episode. Both run the same episode; one that
+    // finishes first waits. Returns true when the episode has just ended for both.
+    function step(): boolean {
+      if (agents.every((ag) => ag.done)) agents.forEach(startEpisode);
+      agents.forEach((ag) => { if (!ag.done) stepAgent(ag); });
+      if (agents.every((ag) => ag.done)) { episodes += 1; return true; }
+      return false;
+    }
+
+    const cx = (i: number) => G.X0 + G.STEP * i + G.CELL / 2;
+    // only touch the live regions when the text changes, so screen readers aren't flooded
+    const setText = (el: Element | null, text: string) => { if (el && el.textContent !== text) el.textContent = text; };
+    function draw() {
+      // shared log scale, so the two strips can be compared square by square
+      const top = Math.max(1, ...agents.flatMap((ag) => ag.visits.slice(0, NS - 1)));
+      agents.forEach((ag, k) => {
+        const v = views[k];
+        v.querySelectorAll<SVGRectElement>('[data-sq]').forEach((rect) => {
+          const i = Number(rect.dataset.sq);
+          const n = ag.visits[i];
+          if (i < NS - 1) rect.style.fill = n === 0 ? '' : `rgb(35 32 27 / ${(0.08 + 0.62 * Math.log(1 + n) / Math.log(1 + top)).toFixed(3)})`;
+          const [ql, qr] = ag.Q[i];
+          const times = `${n} time${n === 1 ? '' : 's'}`;
+          (rect.querySelector('title') as SVGTitleElement).textContent = i === NS - 1
+            ? `square ${i}, the +1: reached ${times}`
+            : `square ${i}${i === 0 ? ', the start' : ''}: visited ${times}; Q(left) ${ql.toFixed(3)}, Q(right) ${qr.toFixed(3)}`;
+        });
+        const x = cx(ag.far);
+        (v.querySelector('[data-far]') as SVGPathElement).setAttribute('d', `M ${x - 4.5} 2 L ${x + 4.5} 2 L ${x} 8.5 Z`);
+        (v.querySelector('[data-dot]') as SVGCircleElement).setAttribute('cx', String(cx(ag.s)));
+        // a small cross at the left edge of the square where a wrong move just ended the episode
+        const wx = cx(ag.s) - G.CELL / 2 + 1, wy = G.Y + G.CELL / 2;
+        (v.querySelector('[data-wrong]') as SVGPathElement).setAttribute('d', ag.done && ag.lastEnd !== null && !ag.lastGoal ? `M ${wx - 3} ${wy - 3} L ${wx + 3} ${wy + 3} M ${wx - 3} ${wy + 3} L ${wx + 3} ${wy - 3}` : '');
+        setText(v.querySelector('[data-furthest]'), String(ag.far));
+        setText(v.querySelector('[data-goals]'), String(ag.goals));
+        setText(v.querySelector('[data-eps]'), String(episodes));
+        setText(v.querySelector('[data-last]'), ag.lastEnd === null ? 'no episodes yet' : ag.lastGoal ? 'last episode: reached the +1' : `last episode: a wrong move at square ${ag.lastEnd}`);
+      });
+      setText($('[data-episodes]'), String(episodes));
+    }
+
+    const runBtn = $('[data-run]');
+    function stopRun() { if (timer !== null) { clearTimeout(timer); timer = null; } runBtn.setAttribute('aria-pressed', 'false'); runBtn.textContent = 'Run'; }
+    function tick() {
+      const ended = step();
+      draw();
+      timer = window.setTimeout(tick, ended ? END_PAUSE_MS : STEP_MS);
+    }
+    runBtn.addEventListener('click', () => {
+      if (timer !== null) { stopRun(); return; }
+      runBtn.setAttribute('aria-pressed', 'true'); runBtn.textContent = 'Pause';
+      tick();
+    });
+    // Finishes an episode left half-run by Pause (it counts as one of the 50).
+    $('[data-fast]').addEventListener('click', () => {
+      stopRun();
+      const target = episodes + 50;
+      while (episodes < target) step();
+      draw();
+    });
+    $('[data-reset]').addEventListener('click', () => { stopRun(); reset(); });
+
+    // Pause when the figure scrolls out of view, so it doesn't run unseen.
+    new IntersectionObserver((entries) => { if (!entries[0].isIntersecting) stopRun(); }).observe(root);
+    reset();
+  }
+
+  function initAll() { document.querySelectorAll<HTMLElement>('[data-exchain]').forEach(initExplorationChain); }
+  document.addEventListener('DOMContentLoaded', initAll);
+  document.addEventListener('astro:page-load', initAll);
+</script>

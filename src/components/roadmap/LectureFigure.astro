@@ -14,6 +14,7 @@ import PPOClip from './PPOClip.astro';
 import RewardModelBT from './RewardModelBT.astro';
 import DPOPolicy from './DPOPolicy.astro';
 import GRPOGroup from './GRPOGroup.astro';
+import ExplorationChain from './ExplorationChain.astro';
 
 interface Props { lecture?: string }
 const { lecture } = Astro.props;
@@ -43,6 +44,9 @@ const FIGURES: Record<string, { caption: string }> = {
   '15': {
     caption: 'GRPO on one question with a checkable answer. The policy starts with 56 at 10%. Each step samples K answers, scores 56 as 1 and the rest 0, gives each the advantage (r − mean) / std within the group, and takes one plain gradient step. Sample a few groups at K = 4: when every answer is wrong, or every one is right, all advantages are 0 and the policy does not move. At K = 4 that is about 40% of the first 20 groups; at K = 16, 5%, but each step samples four times as many answers. <a href="/exercises/15-grpo-rlvr/">Exercise 15</a> has you write this, with Adam, for nine addition questions.',
   },
+  '20': {
+    caption: 'A 16-square combination lock: right opens the next square, one wrong move (left) ends the episode, the last square pays +1. Both Q-learners use ε = 0.1 and break ties at random. Until its first +1, the top agent’s Q-values stay 0, so it moves at random and its visits pile up near the start: fifteen rights in a row come about once in 33,000 episodes. The bottom one also earns 0.1/√N for reaching a square it has reached N times, so it prefers right wherever it has tried it. One press of Train 50 gets it to the +1 in 99.5% of runs. <a href="/exercises/20-exploration/">Exercise 20</a> uses a gentler chain (left steps back one square) and an RND bonus instead of counts.',
+  },
 };
 const fig = lecture ? FIGURES[lecture] : undefined;
 ---
@@ -58,6 +62,7 @@ const fig = lecture ? FIGURES[lecture] : undefined;
     {lecture === '09' && <RewardModelBT caption={fig.caption} />}
     {lecture === '11' && <DPOPolicy caption={fig.caption} />}
     {lecture === '15' && <GRPOGroup caption={fig.caption} />}
+    {lecture === '20' && <ExplorationChain caption={fig.caption} />}
   </section>
 )}
 
