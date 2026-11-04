@@ -1,0 +1,313 @@
+---
+/**
+ * GRPOGroup: GRPO's group-relative advantage on one question with a checkable
+ * answer, 7 × 8 = ?. The policy is a table of six logits, one per candidate
+ * answer, and starts with the right answer, 56, at 10%. Each step samples a group
+ * of K answers, the verifier gives 56 a reward of 1 and every other answer 0, and
+ * each answer gets the advantage
+ *   A_i = (r_i - mean(r)) / (std(r) + eps)
+ * exactly as exercise 15-grpo-rlvr's group_advantages computes it: std is the
+ * sample std (torch's default, dividing by K - 1), eps = 1e-8, and a group whose
+ * rewards are all equal gets all zeros. Then one plain gradient step on the logits:
+ *   theta += lr * (1/K) * sum_i A_i * (onehot(a_i) - pi),   lr = 0.5,
+ * which is one step of lr 0.5 down the gradient of the exercise's grpo_loss. With
+ * one step per group the ratio is exactly 1, so the clip never acts. The exercise
+ * runs Adam (lr 0.5) on nine addition questions with ten answers each; with plain
+ * gradient steps a group that teaches nothing moves nothing, while Adam's momentum
+ * would still move the logits after such a group.
+ */
+interface Props { caption?: string }
+const { caption } = Astro.props;
+
+const ANSWERS = [15, 48, 54, 56, 63, 64];
+const RIGHT = 56;
+// starting probabilities: a policy that usually says 54 and rarely 56
+const P0 = [0.12, 0.15, 0.30, 0.10, 0.20, 0.13];
+const KS = [4, 8, 16];
+const DEFAULT_K = 4;
+const MAX_STEPS = 100;
+
+// policy bars
+const W = 360, COL = W / ANSWERS.length, BAR = 30, BASE = 128, TALL = 104;
+// the curve of P(56) over steps
+const PX0 = 30, PX1 = 352, PY0 = 22, PY1 = 98, H2 = PY1 + 26;
+const geom = { col: COL, bar: BAR, base: BASE, tall: TALL, px0: PX0, px1: PX1, py0: PY0, py1: PY1 };
+---
+
+<figure class="grpo" data-grpo data-answers={JSON.stringify(ANSWERS)} data-right={RIGHT} data-p0={JSON.stringify(P0)} data-k={DEFAULT_K} data-max={MAX_STEPS} data-geom={JSON.stringify(geom)}>
+  <p class="gr-question">7 × 8 = ?</p>
+  <svg viewBox={`-8 -6 ${W + 16} ${BASE + 46}`} role="img" aria-label="The policy: the probability it gives each of six answers to 7 times 8. The right answer, 56, is green." data-policy>
+    <line x1="0" x2={W} y1={BASE} y2={BASE} class="base" />
+    {ANSWERS.map((a, i) => (
+      <g data-col={i}>
+        <rect class:list={['pbar', { right: a === RIGHT }]} x={i * COL + (COL - BAR) / 2} y={BASE} width={BAR} height="0" data-pbar />
+        <text x={i * COL + COL / 2} y={BASE - 5} text-anchor="middle" class="pct" data-pct></text>
+        <text x={i * COL + COL / 2} y={BASE + 19} text-anchor="middle" class:list={['ans', { right: a === RIGHT }]}>{a}</text>
+        {a === RIGHT && <text x={i * COL + COL / 2} y={BASE + 35} text-anchor="middle" class="ans-note">right</text>}
+      </g>
+    ))}
+  </svg>
+
+  <div class="gr-group">
+    <p class="gr-head"><span class="gr-label">last group</span> <span data-ghead>none yet</span></p>
+    <div class="gr-chips" data-chips></div>
+    <p class="gr-gstats" data-gstats></p>
+  </div>
+
+  <div class="gr-controls">
+    <button type="button" data-step>Sample a group and update</button>
+    <button type="button" data-run aria-pressed="false">Run</button>
+    <button type="button" data-reset>Reset</button>
+    <span class="gr-opt" role="group" aria-label="Group size K">
+      <span class="gr-opt-label">K</span>
+      {KS.map((k) => <button type="button" data-k-choice={k} aria-pressed={k === DEFAULT_K ? 'true' : 'false'}>{k}</button>)}
+    </span>
+  </div>
+
+  <div class="gr-stats" aria-live="polite">
+    <span>steps <b data-steps>0</b></span>
+    <span>P(56) <b data-pright>0.100</b></span>
+    <span>groups that taught nothing <b data-zero>0</b> <span data-zsplit></span></span>
+  </div>
+
+  <svg viewBox={`-8 -6 ${W + 16} ${H2 + 8}`} role="img" aria-label="The probability of 56 after each step, with a mark under the axis for each group that taught nothing." data-curve>
+    <text x={PX0} y={PY0 - 10} class="clabel">probability of 56</text>
+    {[0, 0.5, 1].map((v) => (
+      <>
+        <line x1={PX0} x2={PX1} y1={PY1 - v * (PY1 - PY0)} y2={PY1 - v * (PY1 - PY0)} class:list={['cgrid', { axis: v === 0 }]} />
+        <text x={PX0 - 5} y={PY1 - v * (PY1 - PY0) + 4} text-anchor="end" class="cnum">{String(v)}</text>
+      </>
+    ))}
+    {[0, 50, 100].map((s) => (
+      <text x={PX0 + (s / MAX_STEPS) * (PX1 - PX0)} y={H2 - 2} text-anchor="middle" class="cnum">{String(s)}</text>
+    ))}
+    <text x={PX1} y={H2 - 2} text-anchor="end" class="cnum step-label" dx="-26">step</text>
+    <path class="rug wrong" d="" data-rug-wrong />
+    <path class="rug right" d="" data-rug-right />
+    <polyline class="curve" points="" data-line />
+  </svg>
+  <p class="gr-key">
+    <span><svg viewBox="0 0 22 10" aria-hidden="true"><line x1="0" x2="22" y1="5" y2="5" class="curve" /></svg> P(56) after each step</span>
+    <span>taught nothing: <svg viewBox="0 0 6 10" aria-hidden="true"><line x1="3" x2="3" y1="0" y2="10" class="rug wrong" /></svg> all wrong <svg viewBox="0 0 6 10" aria-hidden="true"><line x1="3" x2="3" y1="0" y2="10" class="rug right" /></svg> all right</span>
+  </p>
+
+  {caption && <figcaption set:html={caption} />}
+</figure>
+
+<style>
+  .grpo { margin: 0; }
+  .gr-question { font-family: var(--text); font-size: 1.35rem; font-weight: 700; font-variant-numeric: lining-nums; margin: 0 0 0.4rem !important; color: var(--ink); }
+  .grpo svg[data-policy], .grpo svg[data-curve] { width: 100%; height: auto; display: block; border: 1.2px solid var(--ink); background: var(--box); }
+  .grpo svg[data-curve] { margin-top: 0.6rem; }
+  .grpo .base { stroke: var(--muted); stroke-width: 1; }
+  .grpo .pbar { fill: rgb(123 116 104 / 0.55); transition: y 0.25s ease, height 0.25s ease; }
+  .grpo .pbar.right { fill: rgb(63 138 79 / 0.85); }
+  .grpo .pct { font-family: var(--text); font-size: 13px; fill: var(--ink-soft); font-variant-numeric: lining-nums tabular-nums; transition: y 0.25s ease; }
+  .grpo .ans { font-family: var(--text); font-size: 15px; fill: var(--ink); font-variant-numeric: lining-nums; }
+  .grpo .ans.right { fill: #2f6f3e; font-weight: 700; }
+  .grpo .ans-note { font-family: var(--sc); font-size: 12px; fill: #2f6f3e; letter-spacing: 0.02em; }
+  .gr-group { margin: 0.7rem 0 0; }
+  .gr-head { margin: 0 0 0.35rem !important; font-size: 0.95rem; color: var(--ink-soft); font-variant-numeric: lining-nums; }
+  .gr-label { font-family: var(--sc); font-weight: 500; letter-spacing: 0.02em; color: var(--ink); margin-right: 0.3rem; }
+  .gr-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; min-height: 2.9rem; }
+  /* the chips and the group line are written by the script, so their rules are global (under .gr-group) */
+  .gr-chips :global(.gr-chip) { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; width: 3.55rem; padding: 0.15rem 0 0.2rem; border: 1.2px solid var(--rule); border-radius: 3px; background: var(--box); line-height: 1.2; font-variant-numeric: lining-nums tabular-nums; }
+  .gr-chips :global(.gr-a) { font-weight: 700; color: var(--ink); font-size: 1rem; }
+  .gr-chips :global(.gr-mark) { font-family: var(--text); font-weight: 700; margin-left: 0.2rem; }
+  .gr-chips :global(.gr-chip.ok) { border-color: #2f6f3e; }
+  .gr-chips :global(.gr-chip.ok .gr-mark) { color: #2f6f3e; }
+  .gr-chips :global(.gr-chip.bad .gr-mark) { color: var(--red); }
+  .gr-chips :global(.gr-adv) { font-size: 0.88rem; color: var(--ink-soft); }
+  .gr-chips :global(.gr-chip.flat) { border-style: dashed; }
+  .gr-chips :global(.gr-chip.flat .gr-adv) { color: var(--muted); }
+  .gr-gstats { margin: 0.35rem 0 0 !important; font-size: 0.95rem; color: var(--ink-soft); font-variant-numeric: lining-nums tabular-nums; }
+  .gr-gstats :global(b) { color: var(--ink); }
+  .gr-controls { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; margin: 0.8rem 0 0.4rem; }
+  .gr-opt { display: inline-flex; gap: 0.35rem; align-items: center; margin-left: 0.4rem; }
+  .gr-opt-label { font-family: var(--text); font-style: italic; font-size: 1.1rem; color: var(--ink); margin-right: 0.15rem; }
+  .grpo button { font-family: var(--sc); font-weight: 500; font-size: 1rem; letter-spacing: 0.02em; background: var(--box); color: var(--ink); border: 1.2px solid var(--ink); border-radius: 3px; padding: 0.15rem 0.7rem 0.25rem; cursor: pointer; }
+  .grpo .gr-opt button { padding: 0.05rem 0.45rem 0.15rem; font-family: var(--text); font-variant-numeric: lining-nums tabular-nums; }
+  .grpo button:hover:not(:disabled) { background: #fff6df; }
+  .grpo button[aria-pressed=true] { background: var(--ink); color: var(--paper); }
+  .grpo button:disabled { opacity: 0.4; cursor: default; }
+  .gr-stats { display: flex; flex-wrap: wrap; gap: 0.2rem 1.1rem; font-size: 0.95rem; color: var(--ink-soft); font-variant-numeric: lining-nums; }
+  .gr-stats b { color: var(--ink); font-variant-numeric: lining-nums tabular-nums; }
+  .grpo .clabel { font-family: var(--sc); font-size: 12px; fill: var(--muted); letter-spacing: 0.02em; }
+  .grpo .cnum { font-family: var(--text); font-size: 12px; fill: var(--muted); font-variant-numeric: lining-nums tabular-nums; }
+  .grpo .cgrid { stroke: var(--rule); stroke-width: 1; }
+  .grpo .cgrid.axis { stroke: var(--muted); }
+  .grpo .curve { fill: none; stroke: rgb(63 138 79); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+  .grpo .rug { stroke-width: 1.4; }
+  .grpo .rug.wrong { stroke: var(--red); }
+  .grpo .rug.right { stroke: rgb(63 138 79); }
+  .gr-key { display: flex; flex-wrap: wrap; align-items: center; gap: 0.1rem 1rem; font-size: 0.92rem; color: var(--ink-soft); font-variant-numeric: lining-nums; margin: 0.45rem 0 0 !important; }
+  .gr-key span { display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; }
+  .gr-key svg { height: 0.7rem; width: auto; display: inline-block; }
+  @media (max-width: 480px) {
+    .grpo button { font-size: 0.92rem; padding: 0.1rem 0.55rem 0.2rem; }
+    .gr-opt { margin-left: 0; }
+    .grpo .pct { font-size: 14.5px; }
+    .grpo .ans { font-size: 16.5px; }
+    .grpo .ans-note, .grpo .clabel, .grpo .cnum { font-size: 13.5px; }
+  }
+</style>
+
+<script>
+  type Group = { a: number[]; r: number[]; A: number[]; mean: number; sd: number };
+
+  function initGRPO(root: HTMLElement) {
+    if (root.dataset.ready) return;
+    root.dataset.ready = '1';
+    const ANSWERS: number[] = JSON.parse(root.dataset.answers || '[]');
+    const P0: number[] = JSON.parse(root.dataset.p0 || '[]');
+    const RIGHT = Number(root.dataset.right);
+    const MAX_STEPS = Number(root.dataset.max || 100);
+    const g = JSON.parse(root.dataset.geom || '{}') as { col: number; bar: number; base: number; tall: number; px0: number; px1: number; py0: number; py1: number };
+    const n = ANSWERS.length;
+    const ri = ANSWERS.indexOf(RIGHT);
+    const LR = 0.5, EPS = 1e-8;
+
+    let K = Number(root.dataset.k || 4);
+    let theta: number[] = [];
+    let steps = 0;
+    let history: number[] = []; // P(56) before any step, then after each step
+    let flat: number[] = []; // the steps whose group taught nothing
+    let flatKind: boolean[] = []; // for each of those: true if every answer was right
+    let allWrong = 0, allRight = 0;
+    let last: Group | null = null;
+    let timer: number | null = null;
+
+    const $ = (sel: string) => root.querySelector(sel) as HTMLElement;
+
+    function probs() {
+      const m = Math.max(...theta);
+      const e = theta.map((t) => Math.exp(t - m));
+      const s = e.reduce((x, y) => x + y, 0);
+      return e.map((x) => x / s);
+    }
+    function sampleOne(p: number[]) {
+      const u = Math.random();
+      let c = 0;
+      for (let i = 0; i < p.length; i++) { c += p[i]; if (u < c) return i; }
+      return p.length - 1;
+    }
+    // Exercise 15's group_advantages: sample std (divide by K - 1), eps = 1e-8,
+    // and all zeros when K is 1 or every reward is the same.
+    function advantages(r: number[]) {
+      const k = r.length;
+      const mean = r.reduce((x, y) => x + y, 0) / k;
+      const sd = k > 1 ? Math.sqrt(r.reduce((s, x) => s + (x - mean) ** 2, 0) / (k - 1)) : 0;
+      const A = k === 1 || sd < EPS ? r.map(() => 0) : r.map((x) => (x - mean) / (sd + EPS));
+      return { A, mean, sd };
+    }
+    // One GRPO step. With one gradient step per group the probability ratio is 1,
+    // so the clipped surrogate's gradient is the plain policy gradient
+    // (1/K) sum_i A_i grad log pi(a_i), and grad log pi(a) = onehot(a) - pi.
+    function update() {
+      const p = probs();
+      const a = Array.from({ length: K }, () => sampleOne(p));
+      const r = a.map((i) => (ANSWERS[i] === RIGHT ? 1 : 0));
+      const { A, mean, sd } = advantages(r);
+      const grad = new Array<number>(n).fill(0);
+      for (let k = 0; k < K; k++) for (let j = 0; j < n; j++) grad[j] += A[k] * ((a[k] === j ? 1 : 0) - p[j]);
+      for (let j = 0; j < n; j++) theta[j] += (LR * grad[j]) / K;
+      steps += 1;
+      if (A.every((x) => x === 0)) {
+        flat.push(steps); flatKind.push(mean !== 0);
+        if (mean === 0) allWrong += 1; else allRight += 1;
+      }
+      last = { a, r, A, mean, sd };
+      history.push(probs()[ri]);
+    }
+
+    const signed = (v: number) => (Math.abs(v) < 0.005 ? '0.00' : `${v < 0 ? '−' : '+'}${Math.abs(v).toFixed(2)}`);
+    const pct = (p: number) => (Math.round(p * 100) >= 1 ? `${Math.round(p * 100)}%` : `${(p * 100).toFixed(1)}%`);
+    const xOf = (t: number) => g.px0 + (t / MAX_STEPS) * (g.px1 - g.px0);
+    const yOf = (p: number) => g.py1 - p * (g.py1 - g.py0);
+
+    function draw() {
+      const p = probs();
+      root.querySelectorAll<SVGGElement>('[data-col]').forEach((col, i) => {
+        const h = p[i] * g.tall;
+        const bar = col.querySelector('[data-pbar]') as SVGRectElement;
+        bar.setAttribute('y', String(g.base - h));
+        bar.setAttribute('height', String(h));
+        const t = col.querySelector('[data-pct]') as SVGTextElement;
+        t.setAttribute('y', String(g.base - h - 5));
+        t.textContent = pct(p[i]);
+      });
+
+      const chips = $('[data-chips]');
+      chips.replaceChildren();
+      if (!last) {
+        $('[data-ghead]').textContent = 'none yet';
+        $('[data-gstats]').textContent = '';
+      } else {
+        const right = last.r.reduce((x, y) => x + y, 0);
+        $('[data-ghead]').textContent = `${right} of ${K} right`;
+        const nothing = last.A.every((x) => x === 0);
+        last.a.forEach((ai, k) => {
+          const chip = document.createElement('span');
+          chip.className = `gr-chip ${last!.r[k] ? 'ok' : 'bad'}${nothing ? ' flat' : ''}`;
+          chip.setAttribute('data-chip', '');
+          chip.innerHTML = `<span><span class="gr-a" data-a>${ANSWERS[ai]}</span><span class="gr-mark" aria-label="${last!.r[k] ? 'right' : 'wrong'}">${last!.r[k] ? '✓' : '✗'}</span></span><span class="gr-adv" data-adv>${signed(last!.A[k])}</span>`;
+          chips.appendChild(chip);
+        });
+        const verdict = nothing
+          ? (right === 0 ? 'Every answer is wrong, so every advantage is 0 and nothing changes.' : 'Every answer is right, so every advantage is 0 and nothing changes.')
+          : 'Right answers get a positive advantage and are made more likely; wrong ones get a negative one.';
+        $('[data-gstats]').innerHTML = `reward mean <b data-gmean>${last.mean.toFixed(2)}</b>, std <b data-gsd>${last.sd.toFixed(2)}</b>. ${verdict}`;
+      }
+
+      $('[data-steps]').textContent = String(steps);
+      $('[data-pright]').textContent = p[ri].toFixed(3);
+      $('[data-zero]').textContent = `${flat.length} of ${steps}`;
+      $('[data-zsplit]').textContent = steps ? `(${allWrong} all wrong, ${allRight} all right)` : '';
+
+      ($('[data-line]') as unknown as SVGPolylineElement).setAttribute('points', history.map((v, t) => `${xOf(t).toFixed(1)},${yOf(v).toFixed(1)}`).join(' '));
+      const rug = (right: boolean) => flat.filter((_, k) => flatKind[k] === right).map((t) => `M ${xOf(t).toFixed(1)} ${g.py1 + 3} V ${g.py1 + 10}`).join(' ');
+      ($('[data-rug-wrong]') as unknown as SVGPathElement).setAttribute('d', rug(false));
+      ($('[data-rug-right]') as unknown as SVGPathElement).setAttribute('d', rug(true));
+
+      const finished = steps >= MAX_STEPS;
+      ($('[data-step]') as HTMLButtonElement).disabled = finished;
+      ($('[data-run]') as HTMLButtonElement).disabled = finished;
+    }
+
+    function reset() {
+      theta = P0.map((x) => Math.log(x));
+      steps = 0; history = [probs()[ri]]; flat = []; flatKind = []; allWrong = 0; allRight = 0; last = null;
+      draw();
+    }
+
+    const runBtn = $('[data-run]');
+    function stopRun() { if (timer !== null) { clearTimeout(timer); timer = null; } runBtn.setAttribute('aria-pressed', 'false'); runBtn.textContent = 'Run'; }
+    function tick() {
+      update(); draw();
+      if (steps >= MAX_STEPS) { stopRun(); return; }
+      timer = window.setTimeout(tick, steps < 20 ? 280 : 90); // slow enough at first to read the groups
+    }
+    runBtn.addEventListener('click', () => {
+      if (timer !== null) { stopRun(); return; }
+      if (steps >= MAX_STEPS) return;
+      runBtn.setAttribute('aria-pressed', 'true'); runBtn.textContent = 'Pause';
+      tick();
+    });
+    $('[data-step]').addEventListener('click', () => { stopRun(); if (steps < MAX_STEPS) { update(); draw(); } });
+    $('[data-reset]').addEventListener('click', () => { stopRun(); reset(); });
+    root.querySelectorAll<HTMLButtonElement>('[data-k-choice]').forEach((b) => b.addEventListener('click', () => {
+      stopRun();
+      K = Number(b.dataset.kChoice);
+      root.querySelectorAll('[data-k-choice]').forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
+      reset();
+    }));
+
+    // Pause when the figure scrolls out of view, so it doesn't run unseen.
+    new IntersectionObserver((entries) => { if (!entries[0].isIntersecting) stopRun(); }).observe(root);
+    reset();
+  }
+
+  function initAll() { document.querySelectorAll<HTMLElement>('[data-grpo]').forEach(initGRPO); }
+  document.addEventListener('DOMContentLoaded', initAll);
+  document.addEventListener('astro:page-load', initAll);
+</script>

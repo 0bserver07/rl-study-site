@@ -11,6 +11,7 @@ import GridLearner from './GridLearner.astro';
 import PPOClip from './PPOClip.astro';
 import RewardModelBT from './RewardModelBT.astro';
 import DPOPolicy from './DPOPolicy.astro';
+import GRPOGroup from './GRPOGroup.astro';
 
 interface Props { lecture?: string }
 const { lecture } = Astro.props;
@@ -31,6 +32,9 @@ const FIGURES: Record<string, { caption: string }> = {
   '11': {
     caption: 'DPO on one prompt with five answers, A best to E worst by a true reward that training never sees. The data are all 10 pairs, with the better answer always chosen. The policy starts as a copy of the frozen reference, which favours C, and each step is full-batch gradient descent on the mean DPO loss. Press Run: probability flows to A. B wins 3 of its 4 pairs, yet its probability rises and then falls. β scales both the implicit reward and the size of each step, so it changes how fast the policy moves. It doesn’t hold the policy near the reference here: with every pair labelled the same way, longer training moves probability to A at every β. <a href="/exercises/11-dpo/">Exercise 11</a> has you write DPO for 8 prompts with noisy labels.',
   },
+  '15': {
+    caption: 'GRPO on one question with a checkable answer. The policy starts with 56 at 10%. Each step samples K answers, scores 56 as 1 and the rest 0, gives each the advantage (r − mean) / std within the group, and takes one plain gradient step. Sample a few groups at K = 4: when every answer is wrong, or every one is right, all advantages are 0 and the policy does not move. At K = 4 that is about 40% of the first 20 groups; at K = 16, 5%, but each step samples four times as many answers. <a href="/exercises/15-grpo-rlvr/">Exercise 15</a> has you write this, with Adam, for nine addition questions.',
+  },
 };
 const fig = lecture ? FIGURES[lecture] : undefined;
 ---
@@ -43,6 +47,7 @@ const fig = lecture ? FIGURES[lecture] : undefined;
     {lecture === '06' && <PPOClip caption={fig.caption} />}
     {lecture === '09' && <RewardModelBT caption={fig.caption} />}
     {lecture === '11' && <DPOPolicy caption={fig.caption} />}
+    {lecture === '15' && <GRPOGroup caption={fig.caption} />}
   </section>
 )}
 
