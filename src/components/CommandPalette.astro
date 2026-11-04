@@ -193,6 +193,9 @@ const searchData = JSON.stringify(searchIndex);
       if (searchResults) searchResults.classList.add('hidden');
     }
 
+    // Titles, descriptions and the query are text: escape them before they go into innerHTML.
+    const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
     function performSearch(query) {
       if (!fuse || !searchResults || !quickActions) return;
 
@@ -201,20 +204,20 @@ const searchData = JSON.stringify(searchIndex);
       if (results.length === 0) {
         searchResults.innerHTML = `
           <div class="px-3 py-8 text-center text-primary-500">
-            No results found for "${query}"
+            No results found for "${esc(query)}"
           </div>
         `;
       } else {
         searchResults.innerHTML = results
           .map(
             ({ item }) => `
-          <a href="${item.url}" class="command-palette-item flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-800">
+          <a href="${esc(item.url)}" class="command-palette-item flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-800">
             <span class="text-xs px-1.5 py-0.5 rounded-sm bg-primary-100 dark:bg-primary-800 text-primary-600 dark:text-primary-400">
-              ${item.type}
+              ${esc(item.type)}
             </span>
             <div class="flex-1 min-w-0">
-              <div class="text-primary-900 dark:text-primary-100 truncate">${item.title}</div>
-              ${item.description ? `<div class="text-xs text-primary-500 truncate">${item.description}</div>` : ''}
+              <div class="text-primary-900 dark:text-primary-100 truncate">${esc(item.title)}</div>
+              ${item.description ? `<div class="text-xs text-primary-500 truncate">${esc(item.description)}</div>` : ''}
             </div>
           </a>
         `

@@ -10,7 +10,7 @@ import { getCollection } from 'astro:content';
 
 // Build a map of all posts for preview data
 const posts = await getCollection('posts');
-const projects = await getCollection('projects');
+// Study site: there are no projects, so no projects lookup (it logged a warning on every lecture page).
 
 const previewData: Record<string, { title: string; description?: string; type: string; growth?: string }> = {};
 
@@ -25,14 +25,6 @@ posts.forEach(post => {
   previewData[`/posts/${post.id}`] = previewData[`/posts/${post.id}/`];
 });
 
-projects.forEach(project => {
-  previewData[`/projects/${project.id}/`] = {
-    title: project.data.title,
-    description: project.data.description,
-    type: 'project',
-  };
-  previewData[`/projects/${project.id}`] = previewData[`/projects/${project.id}/`];
-});
 ---
 
 <!-- Link Preview Container (hidden, populated via JS) -->
