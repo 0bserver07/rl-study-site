@@ -7,6 +7,7 @@
  * 06, 09, 11, 15, 20): see it move here, then build it in the exercise.
  */
 import ValueIteration from './ValueIteration.astro';
+import PolicyGradientBandit from './PolicyGradientBandit.astro';
 import GridLearner from './GridLearner.astro';
 import PPOClip from './PPOClip.astro';
 import RewardModelBT from './RewardModelBT.astro';
@@ -19,6 +20,9 @@ const { lecture } = Astro.props;
 const FIGURES: Record<string, { caption: string }> = {
   '01': {
     caption: 'Value iteration on the same grid as the agent on the home page. Each sweep updates every square once: its value becomes the best, over the four moves, of the reward plus γ times the value of where the move lands. The numbers and shading are those values, and the arrows are the best moves (several when they tie). The values spread out from the +1 one square per sweep. Try γ = 0.5, where the far-away +1 is worth less than the steps it takes to reach it. Then turn on the slippery floor, where a move goes the way you asked 80% of the time and 10% to each side, and pick γ = 0.99: some squares next to a pit now walk into a wall. It wastes a step, but no slip from there lands in the pit. <a href="/exercises/01-mdps/">Exercise 01</a> has you write this.',
+  },
+  '02': {
+    caption: 'REINFORCE on the three slot machines from <a href="/why/">the essay</a>. Each bar is the policy’s chance of pulling that machine. After a pull, its logits move by α(r − b) times the gradient of log π(a), with α = 0.3. With no baseline, b = 0: a pull that pays 0 changes nothing, so the policy learns only from wins. Tick “subtract a baseline” and b is the average reward so far: a below-average pull pushes its machine down. After 100 pulls, a worse machine leads in about one run in seven without it, one in twenty with it. <a href="/exercises/02-policy-gradients/">Exercise 02</a> does this on CartPole, with a network and normalized returns (a baseline plus scaling).',
   },
   '03': {
     caption: 'Q-learning on the same grid, without being told the rewards. The agent finds them by moving, and the shading is its current best guess of each square’s value. Run shows every step; Train 50 episodes skips ahead. <a href="/exercises/03-q-learning/">Exercise 03</a> has you write this.',
@@ -43,6 +47,7 @@ const fig = lecture ? FIGURES[lecture] : undefined;
   <section class="bk-box lecture-figure" aria-label="Try it">
     <p class="lf-label">try it</p>
     {lecture === '01' && <ValueIteration caption={fig.caption} />}
+    {lecture === '02' && <PolicyGradientBandit caption={fig.caption} />}
     {lecture === '03' && <GridLearner caption={fig.caption} />}
     {lecture === '06' && <PPOClip caption={fig.caption} />}
     {lecture === '09' && <RewardModelBT caption={fig.caption} />}

@@ -1,0 +1,277 @@
+---
+/**
+ * PolicyGradientBandit: REINFORCE on the three slot machines from the /why/
+ * essay (Bandit.astro). Each machine pays 1 with probability 0.25, 0.5 or 0.7,
+ * in an order shuffled on Reset; the rates stay hidden unless the reader ticks
+ * "show payout rates". The policy is a softmax over three logits, one per
+ * machine, all zero at the start (a third each). After every pull of machine a
+ * with reward r:
+ *   theta <- theta + alpha * (r - b) * (onehot(a) - pi)
+ * which is (r - b) times the gradient of log pi(a). With "subtract a baseline",
+ * b is the average reward of the earlier pulls in this run (0 before the first
+ * pull); unticked, b = 0, so a pull that pays 0 changes nothing.
+ * alpha = 0.3: with the baseline the best machine is the most likely one after
+ * 100 pulls in about 95% of runs and is above 90% by pull 200 in about 85%
+ * (independent NumPy check, 5,000 to 20,000 runs per setting).
+ * Exercise 02-policy-gradients is the same update with an MLP policy on
+ * CartPole and normalized returns (a baseline plus scaling).
+ */
+interface Props { caption?: string }
+const { caption } = Astro.props;
+
+const NAMES = ['A', 'B', 'C'];
+const W = 420, H = 238;        // board viewBox
+const COL = W / 3, BAR = 64;   // column width, bar width
+const Y0 = 168, BAR_H = 124;   // bar baseline (0%) and the height of 100%
+const SW = 420, SH = 74;       // sparkline viewBox
+const SX0 = 44, SX1 = 412, ST = 8, SB = 64; // sparkline plot area
+---
+
+<figure class="pg-bandit" data-pgbandit data-geom={JSON.stringify({ COL, BAR, Y0, BAR_H, SX0, SX1, ST, SB })}>
+  <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Three slot machines. Each bar is the probability that the policy pulls that machine next." data-board>
+    <line class="full" x1="44" x2={W - 10} y1={Y0 - BAR_H} y2={Y0 - BAR_H} />
+    <text class="full-label" x="10" y={Y0 - BAR_H + 4}>100%</text>
+    <line class="axis" x1="10" x2={W - 10} y1={Y0} y2={Y0} />
+    {NAMES.map((n, i) => {
+      const cx = COL * i + COL / 2;
+      return (
+        <g data-arm={i}>
+          <rect class="bar" x={cx - BAR / 2} width={BAR} y={Y0 - BAR_H / 3} height={BAR_H / 3} data-bar />
+          <line class="was" x1={cx - BAR / 2 - 6} x2={cx + BAR / 2 + 6} y1={Y0 - BAR_H / 3} y2={Y0 - BAR_H / 3} data-was />
+          <text class="pct" x={cx} y={Y0 - BAR_H / 3 - 9} text-anchor="middle" data-pct>33.3%</text>
+          <path class="move" d="" data-move />
+          <text class="name" x={cx} y={Y0 + 22} text-anchor="middle">machine {n}</text>
+          <text class="paid" x={cx} y={Y0 + 42} text-anchor="middle" data-paid></text>
+          <text class="rate" x={cx} y={Y0 + 63} text-anchor="middle" data-rate></text>
+        </g>
+      );
+    })}
+  </svg>
+
+  <div class="pg-controls">
+    <button type="button" data-once>Pull once</button>
+    <button type="button" data-run aria-pressed="false">Run</button>
+    <button type="button" data-hundred>Pull 100 at once</button>
+    <button type="button" data-reset>Reset</button>
+  </div>
+  <div class="pg-options">
+    <label class="pg-check"><input type="checkbox" data-baseline /> subtract a baseline</label>
+    <label class="pg-check"><input type="checkbox" data-rates /> show payout rates</label>
+  </div>
+
+  <div class="pg-stats" aria-live="polite">
+    <p class="pg-nums">
+      <span>pulls <b data-pulls>0</b></span>
+      <span>average reward so far <b data-avg>none yet</b></span>
+      <span>baseline <b data-b>off</b></span>
+    </p>
+    <p class="pg-last" data-lastline>No pulls yet. Each machine starts at a third.</p>
+  </div>
+
+  <p class="pg-spark-label">the best machine’s probability, pull 0 to <span data-spark-n>0</span></p>
+  <svg class="pg-spark" viewBox={`0 0 ${SW} ${SH}`} aria-hidden="true">
+    <line class="frame" x1={SX0} x2={SX1} y1={ST} y2={ST} />
+    <line class="frame" x1={SX0} x2={SX1} y1={SB} y2={SB} />
+    <line class="third" x1={SX0} x2={SX1} y1={SB - (SB - ST) / 3} y2={SB - (SB - ST) / 3} />
+    <text class="tick" x={SX0 - 6} y={ST + 4} text-anchor="end">100%</text>
+    <text class="tick" x={SX0 - 6} y={SB - (SB - ST) / 3 + 4} text-anchor="end">⅓</text>
+    <text class="tick" x={SX0 - 6} y={SB + 4} text-anchor="end">0</text>
+    <polyline data-spark points="" />
+  </svg>
+
+  {caption && <figcaption set:html={caption} />}
+</figure>
+
+<style>
+  .pg-bandit { margin: 0; }
+  .pg-bandit svg[data-board] { width: 100%; height: auto; display: block; border: 1.2px solid var(--ink); background: var(--box); }
+  .pg-bandit .axis { stroke: var(--ink-soft); stroke-width: 1.2; }
+  .pg-bandit .full { stroke: var(--rule); stroke-width: 1; stroke-dasharray: 3 4; }
+  .pg-bandit .full-label { font-family: var(--text); font-size: 13px; fill: var(--muted); font-variant-numeric: lining-nums; }
+  .pg-bandit .bar { fill: #c9bfab; stroke: var(--ink-soft); stroke-width: 1; transition: y 0.15s ease-out, height 0.15s ease-out; }
+  .pg-bandit .bar.pulled { stroke: var(--ink); stroke-width: 2.4; }
+  .pg-bandit .was { stroke: var(--ink); stroke-width: 1.3; stroke-dasharray: 3 3; visibility: hidden; }
+  .pg-bandit .was.on { visibility: visible; }
+  .pg-bandit .pct { font-family: var(--text); font-weight: 700; font-size: 17px; fill: var(--ink); font-variant-numeric: lining-nums tabular-nums; paint-order: stroke; stroke: var(--box); stroke-width: 5px; stroke-linejoin: round; }
+  .pg-bandit .move.up { fill: rgb(63 138 79); }
+  .pg-bandit .move.down { fill: var(--red); }
+  .pg-bandit .name { font-family: var(--sc); font-weight: 500; font-size: 16px; fill: var(--ink); }
+  .pg-bandit .paid { font-family: var(--text); font-size: 15px; font-variant-numeric: lining-nums; }
+  .pg-bandit .paid.win { fill: #2f6f3e; font-weight: 700; }
+  .pg-bandit .paid.loss { fill: var(--ink-soft); }
+  .pg-bandit .rate { font-family: var(--hand); font-size: 15px; fill: var(--red); visibility: hidden; }
+  .pg-bandit.show-rates .rate { visibility: visible; }
+  .pg-controls, .pg-options { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; margin: 0.7rem 0 0.4rem; }
+  .pg-options { margin-top: 0.2rem; gap: 0.4rem 1.2rem; }
+  .pg-bandit button { font-family: var(--sc); font-weight: 500; font-size: 1rem; letter-spacing: 0.02em; background: var(--box); color: var(--ink); border: 1.2px solid var(--ink); border-radius: 3px; padding: 0.15rem 0.7rem 0.25rem; cursor: pointer; }
+  .pg-bandit button:hover { background: #fff6df; }
+  .pg-bandit button[aria-pressed=true] { background: var(--ink); color: var(--paper); }
+  .pg-check { font-family: var(--sc); font-weight: 500; font-size: 1rem; color: var(--ink); display: inline-flex; gap: 0.35rem; align-items: center; cursor: pointer; }
+  .pg-check input { accent-color: var(--ink); width: 1rem; height: 1rem; }
+  .pg-stats { font-size: 0.95rem; color: var(--ink-soft); }
+  .pg-stats p { margin: 0 !important; }
+  .pg-nums { display: flex; flex-wrap: wrap; gap: 0.2rem 1.1rem; }
+  .pg-stats b { color: var(--ink); font-variant-numeric: lining-nums tabular-nums; }
+  .pg-last { margin-top: 0.25rem !important; color: var(--ink); font-variant-numeric: lining-nums; min-height: 3em; }
+  .pg-spark-label { font-family: var(--sc); font-weight: 500; font-size: 0.92rem; letter-spacing: 0.02em; color: var(--muted); margin: 0.5rem 0 0.1rem !important; font-variant-numeric: lining-nums; }
+  .pg-spark { width: 100%; height: auto; display: block; }
+  .pg-spark .frame { stroke: var(--rule); stroke-width: 1; }
+  .pg-spark .third { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 4; }
+  .pg-spark .tick { font-family: var(--text); font-size: 13px; fill: var(--muted); font-variant-numeric: lining-nums; }
+  .pg-spark polyline { fill: none; stroke: rgb(63 138 79); stroke-width: 1.8; stroke-linejoin: round; }
+  @media (max-width: 480px) { .pg-bandit button { font-size: 0.92rem; padding: 0.1rem 0.55rem 0.2rem; } .pg-last { min-height: 4.5em; } }
+  @media (prefers-reduced-motion: reduce) { .pg-bandit .bar { transition: none; } }
+</style>
+
+<script>
+  // The machines from Bandit.astro: pays 1 with these probabilities, order shuffled on Reset.
+  const PROBS = [0.25, 0.5, 0.7];
+  const ALPHA = 0.3;
+  const NAMES = ['A', 'B', 'C'];
+  const RUN_MS = 180;      // one pull every 180 ms while running
+  const SPARK_POINTS = 600; // the sparkline draws at most this many points
+
+  type Geom = { COL: number; BAR: number; Y0: number; BAR_H: number; SX0: number; SX1: number; ST: number; SB: number };
+  // one pull: machine a, reward r, baseline b, whether the baseline was on, and pi before and after
+  type Pull = { a: number; r: number; b: number; withBaseline: boolean; before: number[]; after: number[] };
+
+  const shuffle = <T,>(a: T[]) => { const b = [...a]; for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
+  function softmax(th: number[]) {
+    const m = Math.max(...th);
+    const e = th.map((t) => Math.exp(t - m));
+    const s = e.reduce((x, y) => x + y, 0);
+    return e.map((x) => x / s);
+  }
+  const list = (xs: string[]) => (xs.length <= 1 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`);
+  const signed = (x: number) => (x > 0 ? `+${x.toFixed(2)}` : x < 0 ? `−${(-x).toFixed(2)}` : '0');
+
+  function initPolicyGradientBandit(root: HTMLElement) {
+    if (root.dataset.ready) return;
+    root.dataset.ready = '1';
+    const G: Geom = JSON.parse(root.dataset.geom || '{}');
+    const $ = <T extends Element = HTMLElement>(sel: string) => root.querySelector(sel) as T;
+    const arms = Array.from(root.querySelectorAll<SVGGElement>('[data-arm]'));
+
+    let p: number[] = [];        // payout probability of each machine
+    let best = 0;                // index of the 0.7 machine
+    let theta = [0, 0, 0];       // logits
+    let pulls = 0, wins = 0;
+    let history: number[] = [];  // P(best) after each pull, starting at pull 0
+    let last: Pull | null = null;
+    let useBaseline = false;
+    let timer: number | null = null;
+
+    function reset() {
+      p = shuffle(PROBS); best = p.indexOf(Math.max(...p));
+      theta = [0, 0, 0]; pulls = 0; wins = 0; last = null;
+      history = [softmax(theta)[best]];
+      draw();
+    }
+
+    function pull() {
+      const before = softmax(theta);
+      let u = Math.random(), a = 0;
+      while (a < 2 && u >= before[a]) { u -= before[a]; a += 1; }
+      const r = Math.random() < p[a] ? 1 : 0;
+      // the average reward of the earlier pulls in this run (none yet: 0)
+      const b = useBaseline && pulls > 0 ? wins / pulls : 0;
+      for (let i = 0; i < 3; i++) theta[i] += ALPHA * (r - b) * ((i === a ? 1 : 0) - before[i]);
+      pulls += 1; wins += r;
+      const after = softmax(theta);
+      history.push(after[best]);
+      last = { a, r, b, withBaseline: useBaseline, before, after };
+    }
+
+    const barTop = (prob: number) => G.Y0 - prob * G.BAR_H;
+    function moveMark(cx: number, y: number, dir: number) {
+      const x = cx + 33, h = 5;
+      return dir > 0 ? `M ${x - h} ${y + 4} L ${x + h} ${y + 4} L ${x} ${y - 5} Z` : `M ${x - h} ${y - 5} L ${x + h} ${y - 5} L ${x} ${y + 4} Z`;
+    }
+
+    function draw() {
+      const pi = softmax(theta);
+      arms.forEach((g, i) => {
+        const cx = G.COL * i + G.COL / 2;
+        const bar = g.querySelector('[data-bar]') as SVGRectElement;
+        const top = barTop(pi[i]);
+        bar.setAttribute('y', top.toFixed(2));
+        bar.setAttribute('height', (G.Y0 - top).toFixed(2));
+        bar.classList.toggle('pulled', last !== null && last.a === i);
+        const pct = g.querySelector('[data-pct]') as SVGTextElement;
+        pct.setAttribute('y', (top - 9).toFixed(2));
+        pct.textContent = `${(pi[i] * 100).toFixed(1)}%`;
+        // which way this bar moved on the last pull, and where it was before
+        const was = g.querySelector('[data-was]') as SVGLineElement;
+        const mark = g.querySelector('[data-move]') as SVGPathElement;
+        const d = last ? last.after[i] - last.before[i] : 0;
+        const dir = Math.abs(d) > 1e-12 ? Math.sign(d) : 0;
+        was.classList.toggle('on', dir !== 0);
+        if (last) { const wy = barTop(last.before[i]).toFixed(2); was.setAttribute('y1', wy); was.setAttribute('y2', wy); }
+        mark.setAttribute('d', dir === 0 ? '' : moveMark(cx, top - 15, dir));
+        mark.setAttribute('class', `move ${dir > 0 ? 'up' : dir < 0 ? 'down' : ''}`);
+        const paid = g.querySelector('[data-paid]') as SVGTextElement;
+        paid.textContent = last && last.a === i ? `paid ${last.r}` : '';
+        paid.setAttribute('class', `paid ${last && last.a === i ? (last.r ? 'win' : 'loss') : ''}`);
+        (g.querySelector('[data-rate]') as SVGTextElement).textContent = `pays ${Math.round(p[i] * 100)}%`;
+      });
+
+      $('[data-pulls]').textContent = String(pulls);
+      $('[data-avg]').textContent = pulls ? (wins / pulls).toFixed(2) : 'none yet';
+      $('[data-b]').textContent = useBaseline ? 'on' : 'off';
+      $('[data-lastline]').textContent = lastLine();
+      drawSpark();
+    }
+
+    function lastLine() {
+      if (!last) return 'No pulls yet. Each machine starts at a third.';
+      const { a, r, b, withBaseline, before, after } = last;
+      const bShown = Number(b.toFixed(2));
+      const why = !withBaseline
+        ? `No baseline, so r − b = ${r}`
+        : pulls === 1 ? `No earlier pulls, so b = 0 and r − b = ${r}` : `The earlier pulls averaged b = ${bShown.toFixed(2)}, so r − b = ${signed(r - bShown)}`;
+      const up = NAMES.filter((_, i) => after[i] - before[i] > 1e-12);
+      const down = NAMES.filter((_, i) => before[i] - after[i] > 1e-12);
+      const moved = up.length + down.length === 0 ? 'nothing moved'
+        : [up.length ? `${list(up)} went up` : '', down.length ? `${list(down)} went down` : ''].filter(Boolean).join(', ');
+      return `Machine ${NAMES[a]} paid ${r}. ${why}: ${moved}.`;
+    }
+    function drawSpark() {
+      const n = history.length - 1;
+      $('[data-spark-n]').textContent = String(n);
+      const step = Math.max(1, Math.ceil(history.length / SPARK_POINTS));
+      const pts: string[] = [];
+      for (let t = 0; t <= n; t += step) pts.push(sparkPoint(t, n));
+      if (n % step !== 0) pts.push(sparkPoint(n, n));
+      ($('[data-spark]') as unknown as SVGPolylineElement).setAttribute('points', n === 0 ? '' : pts.join(' '));
+    }
+    function sparkPoint(t: number, n: number) {
+      const x = G.SX0 + (t / n) * (G.SX1 - G.SX0);
+      const y = G.SB - history[t] * (G.SB - G.ST);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }
+
+    const runBtn = $('[data-run]');
+    function stopRun() { if (timer !== null) { clearTimeout(timer); timer = null; } runBtn.setAttribute('aria-pressed', 'false'); runBtn.textContent = 'Run'; }
+    function tick() { pull(); draw(); timer = window.setTimeout(tick, RUN_MS); }
+    runBtn.addEventListener('click', () => {
+      if (timer !== null) { stopRun(); return; }
+      runBtn.setAttribute('aria-pressed', 'true'); runBtn.textContent = 'Pause';
+      tick();
+    });
+    $('[data-once]').addEventListener('click', () => { stopRun(); pull(); draw(); });
+    $('[data-hundred]').addEventListener('click', () => { stopRun(); for (let k = 0; k < 100; k++) pull(); draw(); });
+    $('[data-reset]').addEventListener('click', () => { stopRun(); reset(); });
+    $<HTMLInputElement>('[data-baseline]').addEventListener('change', (e) => { useBaseline = (e.target as HTMLInputElement).checked; draw(); });
+    $<HTMLInputElement>('[data-rates]').addEventListener('change', (e) => { root.classList.toggle('show-rates', (e.target as HTMLInputElement).checked); });
+
+    // Pause when the figure scrolls out of view, so it doesn't run unseen.
+    new IntersectionObserver((entries) => { if (!entries[0].isIntersecting) stopRun(); }).observe(root);
+    useBaseline = $<HTMLInputElement>('[data-baseline]').checked;
+    root.classList.toggle('show-rates', $<HTMLInputElement>('[data-rates]').checked);
+    reset();
+  }
+
+  function initAll() { document.querySelectorAll<HTMLElement>('[data-pgbandit]').forEach(initPolicyGradientBandit); }
+  document.addEventListener('DOMContentLoaded', initAll);
+  document.addEventListener('astro:page-load', initAll);
+</script>
