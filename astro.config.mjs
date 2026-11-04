@@ -63,7 +63,7 @@ export default defineConfig({
       [rehypeAutolinkHeadings, { behavior: 'wrap' }],
     ],
     shikiConfig: {
-      theme: 'github-light', // study site: light code on paper
+      theme: 'github-light-high-contrast', // study site: code on paper; plain github-light's orange, red, green and grey fall under 4.5:1 on the paper colour
       wrap: true,
     },
   },

@@ -16,6 +16,7 @@ Built from the study repo at v1.0.0 (commit `219a97a`).
   - 20: exploration on a combination lock, where only the agent with a novelty bonus finds the +1. It isn't exercise 20's chain: there, plain ε-greedy only fails because ties go to "left". The exercise will get the same fix.
 
   Each figure's numbers were checked against a separate Python implementation, and each caption claims only what was measured.
+- Code blocks are readable. Code without highlighting (formulas like RND's r_intrinsic(s) = ‖f_predictor(s) − f_target(s)‖²) was drawn in the paper's own colour, because the theme expected dark code blocks. The highlighting now uses GitHub's high-contrast light colours, so every colour in a code block reads at 4.88:1 or better on the paper. Lines are single-spaced again.
 - Search shows what you type as text.
 - On phones, wide tables scroll inside their own box, and long paths and URLs wrap. Every page fits at 390px.
 - Builds no longer print 34 warnings about an empty projects collection.
