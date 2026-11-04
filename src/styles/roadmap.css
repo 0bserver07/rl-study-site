@@ -245,6 +245,13 @@ button, input, select, textarea { font-family: inherit; }
 .prose-mycelium pre { background: var(--paper-deep) !important; border: 0; border-left: 3px solid var(--rule); border-radius: 0 !important; padding: 0.9rem 1.1rem !important; }
 .prose-mycelium pre code { font-size: 0.8rem !important; line-height: 1.55 !important; background: none !important; }
 .prose-mycelium table { font-size: 1rem; }
+/* On phones, a wide table scrolls inside its own box instead of widening the page,
+   and a long path, URL or identifier breaks rather than pushing past the edge. */
+@media (max-width: 720px) {
+  .prose-mycelium table, .bk-article table { display: block; max-width: 100%; overflow-x: auto; }
+  .prose-mycelium, .bk-article { overflow-wrap: break-word; }
+  .lecture-figure table { display: table; } /* figures size their own tables */
+}
 .prose-mycelium th { font-family: var(--sc); font-weight: 500; color: var(--muted); }
 .prose-mycelium img { border: 1px solid var(--rule); border-radius: 2px; }
 
