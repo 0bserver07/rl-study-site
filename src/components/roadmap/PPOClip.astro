@@ -1,0 +1,286 @@
+---
+/**
+ * PPOClip: one term of PPO's clipped surrogate objective, for a single action,
+ * as a function of the probability ratio r = pi_new(a|s) / pi_old(a|s):
+ *   L(r) = min( r * A, clip(r, 1 - eps, 1 + eps) * A )
+ * (Schulman et al. 2017, arXiv:1707.06347, eq. 7 and Figure 1). The dashed line
+ * is the unclipped r * A. Every update starts at r = 1, where pi_new = pi_old.
+ * With A > 0 the term is flat once r passes 1 + eps; with A < 0 it is flat once
+ * r drops below 1 - eps. On the other side of 1 the min keeps r * A, so L is
+ * never above r * A. The shaded band is where dL/dr = 0.
+ * Exercise 05-ppo writes the whole PPO loss (this term, a value loss and an
+ * entropy bonus, with GAE advantages); this figure is only the clipped term.
+ */
+interface Props { caption?: string }
+const { caption } = Astro.props;
+
+// Plot geometry in viewBox units; the script uses the same numbers.
+const W = 400, H = 262;
+const X0 = 42, X1 = 388, Y0 = 26, Y1 = 212;
+const R_MAX = 2;
+const EPSILONS = [0.1, 0.2, 0.3];
+const DEFAULT_EPS = 0.2;
+const xOf = (r: number) => X0 + (r / R_MAX) * (X1 - X0);
+---
+
+<figure class="ppo-clip" data-ppoclip data-eps={DEFAULT_EPS} data-geom={JSON.stringify({ X0, X1, Y0, Y1, R_MAX })}>
+  <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="PPO's clipped objective L for one action, plotted against the probability ratio r from 0 to 2, with the unclipped r times A as a dashed line and the range where L is flat shaded." data-plot>
+    <rect class="flat" data-flat x={X0} y={Y0} width="0" height={Y1 - Y0} />
+    {[0, 1, 2, 3, 4].map((i) => <line class="grid" data-ygrid={i} x1={X0} x2={X1} y1="0" y2="0" />)}
+    {[0.5, 1, 1.5].map((r) => <line class="grid" x1={xOf(r)} x2={xOf(r)} y1={Y0} y2={Y1} />)}
+    <line class="zero" data-zero x1={X0} x2={X1} y1="0" y2="0" />
+    <line class="bound" data-lo x1="0" x2="0" y1={Y0} y2={Y1} />
+    <line class="bound" data-hi x1="0" x2="0" y1={Y0} y2={Y1} />
+    <text class="tick bound-lbl" data-lo-lbl x="0" y={Y0 - 8} text-anchor="middle">1 − ε</text>
+    <text class="tick bound-lbl" data-hi-lbl x="0" y={Y0 - 8} text-anchor="middle">1 + ε</text>
+    <path class="unclipped" data-unclipped d="" />
+    <path class="curve" data-curve d="" />
+    <circle class="start" data-start cx={xOf(1)} cy="0" r="4.5" />
+    <line class="guide" data-guide x1="0" x2="0" y1="0" y2={Y1} />
+    <text class="flat-lbl" data-flat-lbl x="0" y={Y1 - 30} text-anchor="middle">slope 0</text>
+    <text class="start-lbl" data-start-lbl x="0" y="0">start</text>
+    <circle class="hit" data-hit cx="0" cy="0" r="22" />
+    <circle class="handle" data-handle cx="0" cy="0" r="7" />
+    <rect class="frame" x={X0} y={Y0} width={X1 - X0} height={Y1 - Y0} />
+    {[0, 1, 2, 3, 4].map((i) => <text class="tick" data-ytick={i} x={X0 - 7} y="0" text-anchor="end" dy="0.35em">0</text>)}
+    {[0, 0.5, 1, 1.5, 2].map((r) => <text class="tick" x={xOf(r)} y={Y1 + 18} text-anchor="middle">{r}</text>)}
+    <text class="axis" x={X0 - 7} y={Y0 - 8} text-anchor="end">L</text>
+    <text class="axis" x={(X0 + X1) / 2} y={Y1 + 40} text-anchor="middle">r = π<tspan class="sub" dy="3">new</tspan><tspan dy="-3">(a|s) / π</tspan><tspan class="sub" dy="3">old</tspan><tspan dy="-3">(a|s)</tspan></text>
+  </svg>
+
+  <p class="pc-legend">
+    <span><svg viewBox="0 0 28 10" class="sw" aria-hidden="true"><line x1="1" x2="27" y1="5" y2="5" class="sw-curve" data-sw-curve /></svg>L(r)&nbsp;=&nbsp;min(r·A, clip(r, 1&nbsp;−&nbsp;ε, 1&nbsp;+&nbsp;ε)·A)</span>
+    <span><svg viewBox="0 0 28 10" class="sw" aria-hidden="true"><line x1="1" x2="27" y1="5" y2="5" class="sw-dash" /></svg>r·A, unclipped</span>
+    <span><svg viewBox="0 0 16 10" class="sw sw-sq" aria-hidden="true"><rect x="1" y="0" width="14" height="10" class="sw-flat" /></svg>slope 0</span>
+  </p>
+
+  <div class="pc-options">
+    <span class="pc-opt" role="group" aria-label="Advantage A">
+      <span class="pc-opt-label">A</span>
+      <button type="button" data-adv="1" aria-pressed="true">+1</button>
+      <button type="button" data-adv="-1" aria-pressed="false">−1</button>
+    </span>
+    <span class="pc-opt" role="group" aria-label="Clip range epsilon">
+      <span class="pc-opt-label">ε</span>
+      {EPSILONS.map((e) => <button type="button" data-eps-choice={e} aria-pressed={e === DEFAULT_EPS ? 'true' : 'false'}>{e}</button>)}
+    </span>
+  </div>
+  <label class="pc-slider"><span class="pc-opt-label">r</span><input type="range" min="0" max={R_MAX} step="0.01" value="1" data-r aria-label="Probability ratio r" /></label>
+
+  <div class="pc-live" aria-live="polite">
+    <div class="pc-stats">
+      <span>r <b data-s-r>1.00</b></span>
+      <span>L(r) <b data-s-l>1.00</b></span>
+      <span>r·A <b data-s-ra>1.00</b></span>
+      <span>clip <b data-s-clip>not active</b></span>
+      <span>slope dL/dr <b data-s-slope>1</b></span>
+    </div>
+    <p class="pc-note" data-note></p>
+  </div>
+
+  {caption && <figcaption set:html={caption} />}
+</figure>
+
+<style>
+  .ppo-clip { margin: 0; }
+  .ppo-clip svg[data-plot] { width: 100%; height: auto; display: block; border: 1.2px solid var(--ink); background: var(--box); touch-action: pan-y; user-select: none; -webkit-user-select: none; cursor: pointer; }
+  .ppo-clip .frame { fill: none; stroke: var(--ink-soft); stroke-width: 1; }
+  .ppo-clip .grid { stroke: var(--rule); stroke-width: 0.8; }
+  .ppo-clip .zero { stroke: var(--ink-soft); stroke-width: 1; }
+  .ppo-clip .flat { fill: #efece6; }
+  .ppo-clip .flat-lbl { font-family: var(--sc); font-weight: 500; font-size: 13px; fill: var(--muted); letter-spacing: 0.02em; font-variant-numeric: lining-nums; paint-order: stroke; stroke: #efece6; stroke-width: 5px; stroke-linejoin: round; }
+  .ppo-clip .bound { stroke: var(--ink-soft); stroke-width: 1; stroke-dasharray: 2 3; }
+  .ppo-clip .tick { font-family: var(--text); font-size: 12.5px; fill: var(--ink-soft); font-variant-numeric: lining-nums tabular-nums; }
+  .ppo-clip .bound-lbl { fill: var(--ink); }
+  .ppo-clip .axis { font-family: var(--text); font-style: italic; font-size: 13px; fill: var(--ink); }
+  .ppo-clip .axis .sub { font-size: 0.72em; }
+  .ppo-clip .unclipped { fill: none; stroke: var(--ink-soft); stroke-width: 1.6; stroke-dasharray: 5 4; }
+  .ppo-clip .curve { fill: none; stroke: rgb(63 138 79); stroke-width: 2.8; stroke-linejoin: round; stroke-linecap: round; }
+  .ppo-clip[data-sign=neg] .curve { stroke: var(--red); }
+  .ppo-clip .start { fill: var(--box); stroke: var(--ink); stroke-width: 1.5; }
+  .ppo-clip .start-lbl { font-family: var(--sc); font-weight: 500; font-size: 12px; fill: var(--muted); paint-order: stroke; stroke: var(--box); stroke-width: 5px; stroke-linejoin: round; }
+  .ppo-clip .guide { stroke: var(--ink); stroke-width: 1; stroke-dasharray: 1.5 3; }
+  .ppo-clip .hit { fill: transparent; touch-action: none; cursor: grab; }
+  .ppo-clip .handle { fill: var(--ink); stroke: var(--box); stroke-width: 2; pointer-events: none; }
+  .ppo-clip svg text { pointer-events: none; }
+  .pc-legend { display: flex; flex-wrap: wrap; gap: 0.15rem 1.1rem; font-size: 0.92rem; color: var(--ink-soft); margin: 0.45rem 0 0 !important; font-variant-numeric: lining-nums; }
+  .pc-legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
+  .pc-legend .sw { width: 1.75rem; height: 0.65rem; flex: none; }
+  .pc-legend .sw-sq { width: 1rem; }
+  .pc-legend .sw-curve { stroke: rgb(63 138 79); stroke-width: 2.8; }
+  .ppo-clip[data-sign=neg] .pc-legend .sw-curve { stroke: var(--red); }
+  .pc-legend .sw-dash { stroke: var(--ink-soft); stroke-width: 1.6; stroke-dasharray: 5 4; }
+  .pc-legend .sw-flat { fill: #efece6; stroke: var(--rule); stroke-width: 1; }
+  .pc-options { display: flex; gap: 0.5rem 1.2rem; flex-wrap: wrap; align-items: center; margin: 0.7rem 0 0.3rem; }
+  .pc-opt { display: inline-flex; gap: 0.35rem; align-items: center; }
+  .pc-opt-label { font-family: var(--text); font-style: italic; font-size: 1.1rem; color: var(--ink); margin-right: 0.15rem; }
+  .ppo-clip button { font-family: var(--text); font-weight: 500; font-size: 1rem; font-variant-numeric: lining-nums tabular-nums; background: var(--box); color: var(--ink); border: 1.2px solid var(--ink); border-radius: 3px; padding: 0.05rem 0.45rem 0.15rem; cursor: pointer; }
+  .ppo-clip button:hover { background: #fff6df; }
+  .ppo-clip button[aria-pressed=true] { background: var(--ink); color: var(--paper); }
+  .pc-slider { display: flex; align-items: center; gap: 0.5rem; margin: 0.3rem 0 0.5rem; }
+  .pc-slider input { flex: 1; min-width: 0; accent-color: var(--ink); }
+  .pc-stats { display: flex; flex-wrap: wrap; gap: 0.2rem 1.1rem; font-size: 0.95rem; color: var(--ink-soft); font-variant-numeric: lining-nums; }
+  .pc-stats b { color: var(--ink); font-variant-numeric: lining-nums tabular-nums; }
+  .pc-note { font-size: 0.95rem; color: var(--ink-soft); margin: 0.35rem 0 0 !important; min-height: 3em; font-variant-numeric: lining-nums; }
+  @media (max-width: 480px) {
+    .ppo-clip .tick { font-size: 15px; }
+    .ppo-clip .axis { font-size: 15px; }
+    .ppo-clip .flat-lbl, .ppo-clip .start-lbl { font-size: 14px; }
+    .pc-note { min-height: 4.5em; }
+  }
+</style>
+
+<script>
+  type Region = 'inside' | 'clipped' | 'corner' | 'kept';
+
+  function initPPOClip(root: HTMLElement) {
+    if (root.dataset.ready) return;
+    root.dataset.ready = '1';
+    const { X0, X1, Y0, Y1, R_MAX } = JSON.parse(root.dataset.geom || '{}') as Record<string, number>;
+    const svg = root.querySelector('svg[data-plot]') as SVGSVGElement;
+    const $ = <T extends Element = HTMLElement>(sel: string) => root.querySelector(sel) as T;
+    const slider = $<HTMLInputElement>('[data-r]');
+
+    let A = 1;
+    let eps = Number(root.dataset.eps || 0.2);
+    let r = 1;
+
+    const clamp = (x: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, x));
+    // The term itself: min of the unclipped and the clipped surrogate.
+    const L = (x: number) => Math.min(x * A, clamp(x, 1 - eps, 1 + eps) * A);
+    // Where r sits: inside [1 - eps, 1 + eps]; clipped (the min takes the flat
+    // clipped term); kept (r is outside the range but the min keeps r * A,
+    // the smaller term); or the corner between a sloped part and the flat part.
+    function region(x: number): Region {
+      const lo = 1 - eps, hi = 1 + eps, tol = 1e-9;
+      if (A > 0) {
+        if (Math.abs(x - hi) <= tol) return 'corner';
+        if (x > hi) return 'clipped';
+        if (x < lo - tol) return 'kept';
+        return 'inside';
+      }
+      if (Math.abs(x - lo) <= tol) return 'corner';
+      if (x < lo) return 'clipped';
+      if (x > hi + tol) return 'kept';
+      return 'inside';
+    }
+
+    // y axis follows the sign of A: 0 to 2 for A = +1, -2 to 0 for A = -1.
+    const yLo = () => (A > 0 ? -0.2 : -2.15);
+    const yHi = () => (A > 0 ? 2.15 : 0.2);
+    const xOf = (x: number) => X0 + (x / R_MAX) * (X1 - X0);
+    const yOf = (v: number) => Y1 - ((v - yLo()) / (yHi() - yLo())) * (Y1 - Y0);
+    const f2 = (v: number) => { const s = (Math.abs(v) < 0.005 ? 0 : v).toFixed(2); return s.startsWith('-') ? '−' + s.slice(1) : s; };
+    const signed = (v: number) => (v < 0 ? '−' + String(-v) : String(v));
+    const pt = (x: number, v: number) => `${xOf(x).toFixed(2)} ${yOf(v).toFixed(2)}`;
+
+    const NOTES: Record<string, string> = {
+      'pos-inside': 'Inside [1 − ε, 1 + ε] the two terms are equal, so L = r·A and the slope is A.',
+      'pos-corner': 'This is the corner at r = 1 + ε. L rises with slope A up to here and is flat after it.',
+      'pos-clipped': 'Past 1 + ε the min takes the clipped term, which stays at (1 + ε)·A. Making this good action more likely earns nothing more, so its gradient is zero.',
+      'pos-kept': 'Below 1 − ε the clipped term would be larger, so the min keeps r·A. L is never above r·A, and the slope A still pushes the probability back up.',
+      'neg-inside': 'Inside [1 − ε, 1 + ε] the two terms are equal, so L = r·A and the slope is A.',
+      'neg-corner': 'This is the corner at r = 1 − ε. L is flat up to here and falls with slope A after it.',
+      'neg-clipped': 'Below 1 − ε the min takes the clipped term, which stays at (1 − ε)·A. Making this bad action less likely earns nothing more, so its gradient is zero.',
+      'neg-kept': 'Above 1 + ε the clipped term would be larger, so the min keeps r·A. L keeps falling as the bad action gets more likely, and the slope A pushes the probability back down.',
+    };
+
+    function drawCurves() {
+      const lo = 1 - eps, hi = 1 + eps;
+      root.dataset.sign = A > 0 ? 'pos' : 'neg';
+      // L is piecewise linear with corners only at 1 - eps and 1 + eps.
+      const knots = [0, lo, hi, R_MAX];
+      $('[data-curve]').setAttribute('d', 'M ' + knots.map((x) => pt(x, L(x))).join(' L '));
+      $('[data-unclipped]').setAttribute('d', `M ${pt(0, 0)} L ${pt(R_MAX, R_MAX * A)}`);
+      // Shade where dL/dr = 0: r > 1 + eps for A > 0, r < 1 - eps for A < 0.
+      const [f0, f1] = A > 0 ? [hi, R_MAX] : [0, lo];
+      const flat = $('[data-flat]');
+      flat.setAttribute('x', xOf(f0).toFixed(2));
+      flat.setAttribute('width', (xOf(f1) - xOf(f0)).toFixed(2));
+      $('[data-flat-lbl]').setAttribute('x', ((xOf(f0) + xOf(f1)) / 2).toFixed(2));
+      for (const [sel, x] of [['lo', lo], ['hi', hi]] as Array<[string, number]>) {
+        $(`[data-${sel}]`).setAttribute('x1', xOf(x).toFixed(2));
+        $(`[data-${sel}]`).setAttribute('x2', xOf(x).toFixed(2));
+        $(`[data-${sel}-lbl]`).setAttribute('x', xOf(x).toFixed(2));
+      }
+      const zy = yOf(0).toFixed(2);
+      $('[data-zero]').setAttribute('y1', zy); $('[data-zero]').setAttribute('y2', zy);
+      [0, 0.5, 1, 1.5, 2].forEach((v, i) => {
+        const val = v * A, y = yOf(val).toFixed(2);
+        const g = $(`[data-ygrid="${i}"]`); g.setAttribute('y1', y); g.setAttribute('y2', y);
+        const t = $(`[data-ytick="${i}"]`); t.setAttribute('y', y); t.textContent = signed(val);
+      });
+      const sx = xOf(1), sy = yOf(L(1));
+      $('[data-start]').setAttribute('cy', sy.toFixed(2));
+      const sl = $('[data-start-lbl]');
+      // Straight below the start point for A > 0 and straight above for A < 0:
+      // the curve leaves r = 1 upward to the right and downward to the right,
+      // so neither place touches it, and the label fits between 1 - eps and 1 + eps.
+      sl.setAttribute('x', sx.toFixed(2));
+      sl.setAttribute('y', (A > 0 ? sy + 21 : sy - 12).toFixed(2));
+      sl.setAttribute('text-anchor', 'middle');
+    }
+
+    function drawHandle() {
+      const v = L(r), reg = region(r);
+      const hx = xOf(r).toFixed(2), hy = yOf(v).toFixed(2);
+      for (const sel of ['[data-handle]', '[data-hit]']) { $(sel).setAttribute('cx', hx); $(sel).setAttribute('cy', hy); }
+      const guide = $('[data-guide]');
+      guide.setAttribute('x1', hx); guide.setAttribute('x2', hx); guide.setAttribute('y1', hy);
+      slider.value = r.toFixed(2);
+      $('[data-s-r]').textContent = r.toFixed(2);
+      $('[data-s-l]').textContent = f2(v);
+      $('[data-s-ra]').textContent = f2(r * A);
+      $('[data-s-clip]').textContent = reg === 'clipped' ? 'active' : reg === 'corner' ? 'at the corner' : 'not active';
+      $('[data-s-slope]').textContent = reg === 'corner'
+        ? (A > 0 ? '1 to the left, 0 to the right' : '0 to the left, −1 to the right')
+        : reg === 'clipped' ? '0' : signed(A);
+      $('[data-note]').textContent = NOTES[`${A > 0 ? 'pos' : 'neg'}-${reg}`].replace(/ ([=−+]) /g, '\u00a0$1\u00a0');
+      slider.setAttribute('aria-valuetext', `r ${r.toFixed(2)}, L ${f2(v)}`);
+    }
+
+    function setR(x: number) { r = clamp(Math.round(x * 100) / 100, 0, R_MAX); drawHandle(); }
+    function draw() { drawCurves(); drawHandle(); }
+
+    // Drag the dot, or press anywhere on the plot with a mouse: r follows the
+    // pointer's x. A touch has to start on the dot, so touching the plot elsewhere
+    // still scrolls the page.
+    let dragging = false;
+    function rFromPointer(e: PointerEvent) {
+      const box = svg.getBoundingClientRect();
+      const vbW = svg.viewBox.baseVal.width;
+      const ux = ((e.clientX - box.left) / box.width) * vbW;
+      return ((ux - X0) / (X1 - X0)) * R_MAX;
+    }
+    svg.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
+      if (e.pointerType === 'touch' && !(e.target as Element).hasAttribute('data-hit')) return;
+      dragging = true;
+      svg.setPointerCapture(e.pointerId);
+      setR(rFromPointer(e));
+      e.preventDefault();
+    });
+    svg.addEventListener('pointermove', (e) => { if (dragging) setR(rFromPointer(e)); });
+    const endDrag = () => { dragging = false; };
+    svg.addEventListener('pointerup', endDrag);
+    svg.addEventListener('pointercancel', endDrag);
+    slider.addEventListener('input', () => setR(Number(slider.value)));
+
+    root.querySelectorAll<HTMLButtonElement>('[data-adv]').forEach((b) => b.addEventListener('click', () => {
+      A = Number(b.dataset.adv);
+      root.querySelectorAll('[data-adv]').forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
+      draw();
+    }));
+    root.querySelectorAll<HTMLButtonElement>('[data-eps-choice]').forEach((b) => b.addEventListener('click', () => {
+      eps = Number(b.dataset.epsChoice);
+      root.querySelectorAll('[data-eps-choice]').forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
+      draw();
+    }));
+
+    draw();
+  }
+
+  function initAll() { document.querySelectorAll<HTMLElement>('[data-ppoclip]').forEach(initPPOClip); }
+  document.addEventListener('DOMContentLoaded', initAll);
+  document.addEventListener('astro:page-load', initAll);
+</script>

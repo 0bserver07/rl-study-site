@@ -8,6 +8,7 @@
  */
 import ValueIteration from './ValueIteration.astro';
 import GridLearner from './GridLearner.astro';
+import PPOClip from './PPOClip.astro';
 
 interface Props { lecture?: string }
 const { lecture } = Astro.props;
@@ -19,6 +20,9 @@ const FIGURES: Record<string, { caption: string }> = {
   '03': {
     caption: 'Q-learning on the same grid, without being told the rewards. The agent finds them by moving, and the shading is its current best guess of each square’s value. Run shows every step; Train 50 episodes skips ahead. <a href="/exercises/03-q-learning/">Exercise 03</a> has you write this.',
   },
+  '06': {
+    caption: 'PPO’s clipped objective for one action in one state, against the probability ratio r&nbsp;=&nbsp;π<sub>new</sub>(a|s)&nbsp;/&nbsp;π<sub>old</sub>(a|s). Every update starts at r&nbsp;=&nbsp;1. Drag the dot or use the slider; the dashed line is the unclipped r·A. With A&nbsp;=&nbsp;+1, L goes flat once r passes 1&nbsp;+&nbsp;ε, so making a good action more likely earns nothing more. With A&nbsp;=&nbsp;−1 it goes flat once r drops below 1&nbsp;−&nbsp;ε. On the other side of 1 the min keeps r·A itself, and nowhere is L above r·A. The figure is only this clipped term: <a href="/exercises/05-ppo/">Exercise 05</a> has you write all of PPO on CartPole, with GAE advantages, a value loss and an entropy bonus.',
+  },
 };
 const fig = lecture ? FIGURES[lecture] : undefined;
 ---
@@ -28,6 +32,7 @@ const fig = lecture ? FIGURES[lecture] : undefined;
     <p class="lf-label">try it</p>
     {lecture === '01' && <ValueIteration caption={fig.caption} />}
     {lecture === '03' && <GridLearner caption={fig.caption} />}
+    {lecture === '06' && <PPOClip caption={fig.caption} />}
   </section>
 )}
 
