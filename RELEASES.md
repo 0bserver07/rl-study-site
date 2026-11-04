@@ -2,6 +2,24 @@
 
 Versions of this site. The lectures, notes, and exercises have their own history in the study repo's [changelog](/changelog/). Each release here names the study repo commit it was built from.
 
+## 0.5.0 (2026-11-04)
+
+Built from the study repo at v1.0.0 (commit `219a97a`).
+
+- Every lecture with an exercise now has a figure to try, between Before you start and the text. New in this release:
+  - 02: REINFORCE on the three slot machines from the essay, with and without a baseline.
+  - 04: actor-critic on the home page's grid, with the last episode's trail coloured by advantage.
+  - 06: PPO's clipped objective for one action, against the probability ratio.
+  - 09: a Bradley-Terry reward model learning five answers' ranking from noisy comparisons.
+  - 11: DPO moving a five-answer policy away from its reference.
+  - 15: GRPO's group advantages on 7 × 8, and the groups that teach nothing.
+  - 20: exploration on a combination lock, where only the agent with a novelty bonus finds the +1. It isn't exercise 20's chain: there, plain ε-greedy only fails because ties go to "left". The exercise will get the same fix.
+
+  Each figure's numbers were checked against a separate Python implementation, and each caption claims only what was measured.
+- Search shows what you type as text.
+- On phones, wide tables scroll inside their own box, and long paths and URLs wrap. Every page fits at 390px.
+- Builds no longer print 34 warnings about an empty projects collection.
+
 ## 0.4.0 (2026-11-03)
 
 Built from the study repo at v1.0.0 (commit `219a97a`).

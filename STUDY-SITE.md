@@ -24,7 +24,7 @@ A site for [Study-Reinforcement-Learning](https://github.com/0bserver07/Study-Re
 - `/start/`: what to know first with a self-check (remembered in the browser), the study planner, week one, and what to do when stuck.
 - `/tracks/<id>/`: one page per track.
 - `/posts/<slug>/`: the lectures. `/library/`: everything.
-- Lecture figures: a lecture with an exercise gets an interactive figure between "Before you start" and the text (`src/components/roadmap/LectureFigure.astro`, placed by `PostLayout`). Done: 01, value iteration on the home page's grid, one sweep at a time, with γ and a slippery floor (`ValueIteration.astro`); 03, the Q-learning agent (`GridLearner`). Planned: 02, 04, 06, 09, 11, 15, 20. Check a figure's numbers against an independent calculation before shipping it.
+- Lecture figures: every lecture with an exercise has an interactive figure between "Before you start" and the text. `src/components/roadmap/LectureFigure.astro` maps lectures to figures and holds each caption; `PostLayout` places it. 01 `ValueIteration`, 02 `PolicyGradientBandit`, 03 `GridLearner`, 04 `ActorCriticGrid`, 06 `PPOClip`, 09 `RewardModelBT`, 11 `DPOPolicy`, 15 `GRPOGroup`, 20 `ExplorationChain` (a combination lock, not exercise 20's chain; see RELEASES 0.5.0). Before shipping a figure, check its numbers against an independent calculation, and let its caption claim only what was measured.
 - `/why/`: an essay (`src/essays/why-rl.mdx`, page `src/pages/why.astro`) with the playable bandit (`src/components/roadmap/Bandit.astro`) and the gridworld. The same essay is on yad.codes (garden repo: `src/content/posts/why-i-keep-coming-back-to-reinforcement-learning.mdx`, figures in `src/components/rl/`); keep the two copies in step.
 
 ## Design
