@@ -1,0 +1,253 @@
+---
+/**
+ * DPOPolicy: DPO on one prompt with five answers and a tabular policy (one
+ * logit per answer), like one row of exercise 11's nn.Embedding policy.
+ * A frozen reference policy favours the middling answer C; the hidden true
+ * rewards rank A best and E worst. The data are all 10 pairs of answers, the
+ * one with the higher true reward always chosen, so training is deterministic.
+ * The policy starts equal to the reference, and each step is one step of
+ * full-batch gradient descent (learning rate 1) on the mean DPO loss
+ * (Rafailov et al. 2023, arXiv:2305.18290, eq. 7):
+ *   -log sigmoid( beta * [(log pi(y_w) - log pi_ref(y_w)) - (log pi(y_l) - log pi_ref(y_l))] )
+ * The table's last column is the implicit reward beta * log(pi / pi_ref).
+ * Exercise 11-dpo trains the same loss on 8 prompts with noisy Bradley-Terry
+ * labels, using Adam on minibatches.
+ */
+interface Props { caption?: string }
+const { caption } = Astro.props;
+
+const NAMES = ['A', 'B', 'C', 'D', 'E'];
+const REWARDS = [1.0, 0.6, 0.3, -0.2, -0.8];     // hidden true rewards, best first
+const THETA_REF = [-1.0, 0.0, 1.0, 0.5, -0.5];   // frozen reference logits: C on top, A near the bottom
+const LR = 1;
+const BETAS = [0.1, 0.5, 2];
+const DEFAULT_BETA = 0.5;
+
+// Bar chart geometry in viewBox units; the script reads the same numbers.
+const W = 400, H = 214;
+const X0 = 40, X1 = 392, Y0 = 12, Y1 = 184;
+const gw = (X1 - X0) / NAMES.length;
+const BAR = 21;
+const softmax = (t: number[]) => { const m = Math.max(...t); const e = t.map((x) => Math.exp(x - m)); const s = e.reduce((a, b) => a + b, 0); return e.map((x) => x / s); };
+const piRef = softmax(THETA_REF);
+const yOf = (p: number) => Y1 - p * (Y1 - Y0);
+const fmtR = (v: number) => (v < 0 ? '−' : '+') + Math.abs(v).toFixed(1);
+---
+
+<figure class="dpo-policy" data-dpopolicy data-beta={DEFAULT_BETA} data-lr={LR} data-rewards={JSON.stringify(REWARDS)} data-theta-ref={JSON.stringify(THETA_REF)} data-geom={JSON.stringify({ Y0, Y1 })}>
+  <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Bars for answers A to E: an outlined bar for the reference probability and a filled bar for the current policy probability." data-chart>
+    {[0, 0.25, 0.5, 0.75, 1].map((p) => <>
+      <line class={p === 0 ? 'base' : 'grid'} x1={X0} x2={X1} y1={yOf(p)} y2={yOf(p)} />
+      <text class="tick" x={X0 - 6} y={yOf(p)} dy="0.35em" text-anchor="end">{p === 0 ? '0' : p}</text>
+    </>)}
+    {NAMES.map((n, k) => {
+      const cx = X0 + gw * (k + 0.5);
+      return (
+        <g data-answer={k}>
+          <rect class="ref" x={cx - BAR - 2} y={yOf(piRef[k])} width={BAR} height={Y1 - yOf(piRef[k])} />
+          <rect class="pol" data-bar x={cx + 2} y={yOf(piRef[k])} width={BAR} height={Y1 - yOf(piRef[k])} />
+          <text class="name" x={cx} y={Y1 + 21} text-anchor="middle">{n}</text>
+        </g>
+      );
+    })}
+  </svg>
+
+  <p class="dp-legend">
+    <span class="dp-key"><svg viewBox="0 0 14 12" class="sw" aria-hidden="true"><rect x="1" y="1" width="12" height="10" class="sw-ref" /></svg><span>reference π<sub>ref</sub>, frozen</span></span>
+    <span class="dp-key"><svg viewBox="0 0 26 12" class="sw sw-2" aria-hidden="true"><rect x="1" y="1" width="11" height="10" class="sw-up" /><rect x="14" y="1" width="11" height="10" class="sw-down" /></svg><span>policy π: green where above π<sub>ref</sub>, red where below</span></span>
+  </p>
+
+  <div class="dp-controls">
+    <button type="button" data-train>Train 10 steps</button>
+    <button type="button" data-run aria-pressed="false">Run</button>
+    <button type="button" data-reset>Reset</button>
+    <span class="dp-opt" role="group" aria-label="DPO beta">
+      <span class="dp-opt-label">β</span>
+      {BETAS.map((b) => <button type="button" data-beta-choice={b} aria-pressed={b === DEFAULT_BETA ? 'true' : 'false'}>{b}</button>)}
+    </span>
+  </div>
+
+  <div class="dp-stats" aria-live="polite">
+    <span>step <b data-step>0</b></span>
+    <span>mean DPO loss <b data-loss>0.6931</b></span>
+    <span>KL(π‖π<sub>ref</sub>) <b data-kl>0.000</b></span>
+  </div>
+
+  <table class="dp-table">
+    <thead>
+      <tr><th scope="col">answer</th><th scope="col">true reward</th><th scope="col">π<sub>ref</sub></th><th scope="col">π</th><th scope="col">implicit reward β·log(π/π<sub>ref</sub>)</th></tr>
+    </thead>
+    <tbody>
+      {NAMES.map((n, k) => (
+        <tr data-row={k}>
+          <th scope="row">{n}</th>
+          <td>{fmtR(REWARDS[k])}</td>
+          <td>{piRef[k].toFixed(3)}</td>
+          <td data-pi>{piRef[k].toFixed(3)}</td>
+          <td data-ir>0.00</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+
+  {caption && <figcaption set:html={caption} />}
+</figure>
+
+<style>
+  .dpo-policy { margin: 0; }
+  .dpo-policy svg[data-chart] { width: 100%; height: auto; display: block; border: 1.2px solid var(--ink); background: var(--box); }
+  .dpo-policy .grid { stroke: var(--rule); stroke-width: 0.8; }
+  .dpo-policy .base { stroke: var(--ink-soft); stroke-width: 1; }
+  .dpo-policy .tick { font-family: var(--text); font-size: 12.5px; fill: var(--ink-soft); font-variant-numeric: lining-nums tabular-nums; }
+  .dpo-policy .name { font-family: var(--text); font-weight: 700; font-size: 15px; fill: var(--ink); }
+  .dpo-policy .ref { fill: var(--box); stroke: var(--ink-soft); stroke-width: 1.2; stroke-dasharray: 3 2; }
+  .dpo-policy .pol { fill: var(--ink-soft); }
+  .dpo-policy .pol.up { fill: rgb(63 138 79); }
+  .dpo-policy .pol.down { fill: var(--red); }
+  .dp-legend { display: flex; flex-wrap: wrap; gap: 0.15rem 1.1rem; font-size: 0.92rem; color: var(--ink-soft); margin: 0.45rem 0 0 !important; }
+  .dp-legend .dp-key { display: inline-flex; align-items: center; gap: 0.35rem; }
+  .dp-legend .sw { width: 0.9rem; height: 0.8rem; flex: none; }
+  .dp-legend .sw-2 { width: 1.65rem; }
+  .dp-legend .sw-ref { fill: var(--box); stroke: var(--ink-soft); stroke-width: 1.2; stroke-dasharray: 3 2; }
+  .dp-legend .sw-up { fill: rgb(63 138 79); }
+  .dp-legend .sw-down { fill: var(--red); }
+  .dp-controls { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; margin: 0.7rem 0 0.4rem; }
+  .dp-opt { display: inline-flex; gap: 0.35rem; align-items: center; margin-left: 0.6rem; }
+  .dp-opt-label { font-family: var(--text); font-style: italic; font-size: 1.1rem; color: var(--ink); margin-right: 0.15rem; }
+  .dpo-policy button { font-family: var(--sc); font-weight: 500; font-size: 1rem; letter-spacing: 0.02em; background: var(--box); color: var(--ink); border: 1.2px solid var(--ink); border-radius: 3px; padding: 0.15rem 0.7rem 0.25rem; cursor: pointer; }
+  .dpo-policy .dp-opt button { padding: 0.05rem 0.45rem 0.15rem; font-family: var(--text); font-variant-numeric: lining-nums tabular-nums; }
+  .dpo-policy button:hover { background: #fff6df; }
+  .dpo-policy button[aria-pressed=true] { background: var(--ink); color: var(--paper); }
+  .dp-stats { display: flex; flex-wrap: wrap; gap: 0.2rem 1.1rem; font-size: 0.95rem; color: var(--ink-soft); font-variant-numeric: lining-nums; }
+  .dp-stats b { color: var(--ink); font-variant-numeric: lining-nums tabular-nums; }
+  .dp-table { margin: 0.7rem 0 0; border-collapse: collapse; font-size: 0.95rem; width: 100%; max-width: 30rem; font-variant-numeric: lining-nums tabular-nums; }
+  .dp-table th, .dp-table td { padding: 0.2rem 0.4rem; border-top: 1px solid var(--rule); text-align: right; }
+  .dp-table thead th { font-weight: 400; color: var(--ink-soft); font-size: 0.88rem; line-height: 1.25; vertical-align: bottom; border-top: none; }
+  .dp-table th:first-child { text-align: left; padding-left: 0; }
+  .dp-table td:last-child, .dp-table th:last-child { padding-right: 0; }
+  .dp-table tbody th { font-weight: 700; }
+  .dp-table td.up { color: rgb(47 111 62); }
+  .dp-table td.down { color: var(--red); }
+  @media (max-width: 480px) {
+    .dpo-policy button { font-size: 0.92rem; padding: 0.1rem 0.55rem 0.2rem; }
+    .dpo-policy .tick { font-size: 15px; }
+    .dpo-policy .name { font-size: 17px; }
+    .dp-opt { margin-left: 0; }
+    .dp-table { font-size: 0.9rem; }
+    .dp-table th, .dp-table td { padding: 0.2rem 0.25rem; }
+  }
+</style>
+
+<script>
+  function initDPOPolicy(root: HTMLElement) {
+    if (root.dataset.ready) return;
+    root.dataset.ready = '1';
+    const REWARDS: number[] = JSON.parse(root.dataset.rewards || '[]');
+    const THETA_REF: number[] = JSON.parse(root.dataset.thetaRef || '[]');
+    const { Y0, Y1 } = JSON.parse(root.dataset.geom || '{}') as Record<string, number>;
+    const LR = Number(root.dataset.lr || 1);
+    const N = REWARDS.length;
+    const RUN_UNTIL = 1000;
+
+    // All pairs; the answer with the higher true reward is the chosen one.
+    const PAIRS: Array<[number, number]> = [];
+    for (let i = 0; i < N; i++) for (let j = i + 1; j < N; j++) PAIRS.push(REWARDS[i] > REWARDS[j] ? [i, j] : [j, i]);
+
+    const logSoftmax = (t: number[]) => { const m = Math.max(...t); const z = m + Math.log(t.reduce((a, x) => a + Math.exp(x - m), 0)); return t.map((x) => x - z); };
+    const logSigmoid = (x: number) => (x >= 0 ? -Math.log1p(Math.exp(-x)) : x - Math.log1p(Math.exp(x)));
+    const sigmoid = (x: number) => (x >= 0 ? 1 / (1 + Math.exp(-x)) : Math.exp(x) / (1 + Math.exp(x)));
+    const lpRef = logSoftmax(THETA_REF);
+
+    let beta = Number(root.dataset.beta || 0.5);
+    let theta: number[] = [];
+    let step = 0;
+    let timer: number | null = null;
+
+    const $ = (sel: string) => root.querySelector(sel) as HTMLElement;
+
+    // Mean DPO loss over the pairs, and its gradient with respect to the logits.
+    // For a softmax policy, log pi(y_w) - log pi(y_l) = theta_w - theta_l, so each
+    // pair pushes theta_w up and theta_l down by beta * sigmoid(-margin) / pairs.
+    function lossAndGrad(t: number[]) {
+      const lp = logSoftmax(t);
+      const grad = new Array(N).fill(0);
+      let loss = 0;
+      for (const [w, l] of PAIRS) {
+        const margin = beta * ((lp[w] - lpRef[w]) - (lp[l] - lpRef[l]));
+        loss -= logSigmoid(margin);
+        const c = beta * sigmoid(-margin);
+        grad[w] -= c; grad[l] += c;
+      }
+      return { loss: loss / PAIRS.length, grad: grad.map((g) => g / PAIRS.length) };
+    }
+    function trainStep() {
+      const { grad } = lossAndGrad(theta);
+      theta = theta.map((x, k) => x - LR * grad[k]);
+      step += 1;
+    }
+
+    const fix = (v: number, d: number) => { const s = v.toFixed(d); return Number(s) === 0 ? (0).toFixed(d) : s.replace('-', '−'); };
+    const signed = (v: number, d: number) => { const s = fix(v, d); return s === (0).toFixed(d) || s.startsWith('−') ? s : '+' + s; };
+
+    function draw() {
+      const lp = logSoftmax(theta);
+      const { loss } = lossAndGrad(theta);
+      let kl = 0;
+      root.querySelectorAll<SVGGElement>('[data-answer]').forEach((g) => {
+        const k = Number(g.dataset.answer);
+        const p = Math.exp(lp[k]);
+        kl += p * (lp[k] - lpRef[k]);
+        const ir = beta * (lp[k] - lpRef[k]);
+        const shown = signed(ir, 2);
+        const dir = shown.startsWith('+') ? 'up' : shown.startsWith('−') ? 'down' : '';
+        const bar = g.querySelector('[data-bar]') as SVGRectElement;
+        const y = Y1 - p * (Y1 - Y0);
+        bar.setAttribute('y', y.toFixed(2));
+        bar.setAttribute('height', (Y1 - y).toFixed(2));
+        bar.setAttribute('class', `pol ${dir}`.trim());
+        const row = root.querySelector(`[data-row="${k}"]`) as HTMLElement;
+        (row.querySelector('[data-pi]') as HTMLElement).textContent = p.toFixed(3);
+        const irCell = row.querySelector('[data-ir]') as HTMLElement;
+        irCell.textContent = shown;
+        irCell.className = dir;
+      });
+      $('[data-step]').textContent = String(step);
+      $('[data-loss]').textContent = loss.toFixed(4);
+      $('[data-kl]').textContent = fix(kl, 3);
+    }
+
+    function reset() { theta = THETA_REF.slice(); step = 0; draw(); }
+
+    const runBtn = $('[data-run]');
+    function stopRun() { if (timer !== null) { clearTimeout(timer); timer = null; } runBtn.setAttribute('aria-pressed', 'false'); runBtn.textContent = 'Run'; }
+    function tick() {
+      const n = step < 100 ? 1 : 5; // one step at a time at first, then faster
+      for (let i = 0; i < n && step < RUN_UNTIL; i++) trainStep();
+      draw();
+      if (step >= RUN_UNTIL) { stopRun(); return; }
+      timer = window.setTimeout(tick, 40);
+    }
+    runBtn.addEventListener('click', () => {
+      if (timer !== null) { stopRun(); return; }
+      if (step >= RUN_UNTIL) reset();
+      runBtn.setAttribute('aria-pressed', 'true'); runBtn.textContent = 'Pause';
+      tick();
+    });
+    $('[data-train]').addEventListener('click', () => { stopRun(); for (let i = 0; i < 10; i++) trainStep(); draw(); });
+    $('[data-reset]').addEventListener('click', () => { stopRun(); reset(); });
+    root.querySelectorAll<HTMLButtonElement>('[data-beta-choice]').forEach((b) => b.addEventListener('click', () => {
+      stopRun();
+      beta = Number(b.dataset.betaChoice);
+      root.querySelectorAll('[data-beta-choice]').forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
+      reset();
+    }));
+
+    // Pause when the figure scrolls out of view, so it doesn't run unseen.
+    new IntersectionObserver((entries) => { if (!entries[0].isIntersecting) stopRun(); }).observe(root);
+    reset();
+  }
+
+  function initAll() { document.querySelectorAll<HTMLElement>('[data-dpopolicy]').forEach(initDPOPolicy); }
+  document.addEventListener('DOMContentLoaded', initAll);
+  document.addEventListener('astro:page-load', initAll);
+</script>
