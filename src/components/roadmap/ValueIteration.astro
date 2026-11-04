@@ -1,0 +1,228 @@
+---
+/**
+ * ValueIteration: value iteration on the home page's grid, one sweep at a time.
+ * Each sweep applies the Bellman optimality backup to every square, using the
+ * values from the sweep before:
+ *   V(s) <- max over a of  sum over s' of  p(s' | s, a) * (r + gamma * V(s'))
+ * The shading and numbers are V(s); the arrows are the greedy action.
+ * Same MDP as GridLearner (the Q-learning demo): the +1 goal and the -1 pits end
+ * the episode, every other move costs 0.02, walls and edges leave you in place.
+ * It's the algorithm exercise 01-mdps has you write; "slippery floor" is that
+ * exercise's going-further variant (80% as asked, 10% to each side).
+ */
+interface Props { caption?: string }
+const { caption } = Astro.props;
+
+// Same grid as GridLearner.astro. '.' empty, 'S' start, 'G' goal (+1), 'P' pit (-1), 'W' wall
+const LAYOUT = [
+  '.....G',
+  '.WW.P.',
+  '....W.',
+  '.WP...',
+  'S...W.',
+];
+const C = 60;
+const cols = LAYOUT[0].length, rows = LAYOUT.length;
+const GAMMAS = [0.5, 0.9, 0.95, 0.99];
+const DEFAULT_GAMMA = 0.95;
+---
+
+<figure class="value-iter" data-valueiter data-layout={JSON.stringify(LAYOUT)} data-gamma={DEFAULT_GAMMA}>
+  <svg viewBox={`0 0 ${cols * C} ${rows * C}`} role="img" aria-label="The gridworld from the home page. Each square shows its value; arrows show the best move." data-board>
+    {LAYOUT.map((row, y) => row.split('').map((ch, x) => (
+      <g data-cell={`${x},${y}`} data-kind={ch}>
+        <rect x={x * C} y={y * C} width={C} height={C} class:list={['cell', { wall: ch === 'W' }]} />
+        {ch === 'G' && <text x={x * C + C / 2} y={y * C + C / 2 + 7} text-anchor="middle" class="lbl goal">+1</text>}
+        {ch === 'P' && <text x={x * C + C / 2} y={y * C + C / 2 + 7} text-anchor="middle" class="lbl pit">−1</text>}
+        {ch === 'S' && <text x={x * C + 4} y={y * C + 11} class="lbl start">start</text>}
+        {ch !== 'W' && ch !== 'G' && ch !== 'P' && <>
+          <path class="arrow" d="" />
+          <text x={x * C + C / 2} y={y * C + C - 7} text-anchor="middle" class="val" data-val>0.00</text>
+        </>}
+      </g>
+    )))}
+  </svg>
+
+  <div class="vi-controls">
+    <button type="button" data-sweep>One sweep</button>
+    <button type="button" data-run>Sweep until it stops</button>
+    <button type="button" data-reset>Reset</button>
+  </div>
+  <div class="vi-options">
+    <span class="vi-opt" role="group" aria-label="Discount factor gamma">
+      <span class="vi-opt-label">γ</span>
+      {GAMMAS.map((g) => <button type="button" data-gamma-choice={g} aria-pressed={g === DEFAULT_GAMMA ? 'true' : 'false'}>{g}</button>)}
+    </span>
+    <label class="vi-slip"><input type="checkbox" data-slip /> slippery floor</label>
+  </div>
+
+  <div class="vi-stats" aria-live="polite">
+    <span>sweeps <b data-k>0</b></span>
+    <span>largest change in the last sweep <b data-delta>none yet</b></span>
+    <span>value of the start square <b data-vstart>0.00</b></span>
+  </div>
+
+  {caption && <figcaption set:html={caption} />}
+</figure>
+
+<style>
+  .value-iter { margin: 0; }
+  .value-iter svg[data-board] { width: 100%; height: auto; display: block; border: 1.2px solid var(--ink); background: var(--box); }
+  .value-iter .cell { fill: var(--box); stroke: var(--rule); stroke-width: 1; transition: fill 0.25s; }
+  .value-iter .cell.wall { fill: #3b362e; stroke: #3b362e; }
+  .value-iter .lbl { font-family: var(--text); font-weight: 800; font-size: 20px; pointer-events: none; }
+  .value-iter .lbl.goal { fill: #2f6f3e; }
+  .value-iter .lbl.pit { fill: var(--red); }
+  .value-iter .lbl.start { font-family: var(--sc); font-weight: 500; font-size: 10px; fill: var(--muted); }
+  .value-iter .val { font-family: var(--text); font-size: 12.5px; fill: var(--ink-soft); font-variant-numeric: lining-nums tabular-nums; pointer-events: none; }
+  .value-iter .val.zero { fill: var(--muted); }
+  .value-iter .arrow { fill: none; stroke: var(--ink-soft); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; opacity: 0.8; }
+  .vi-controls, .vi-options { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; margin: 0.7rem 0 0.4rem; }
+  .vi-options { margin-top: 0.2rem; gap: 0.5rem 1.2rem; }
+  .vi-opt { display: inline-flex; gap: 0.35rem; align-items: center; }
+  .vi-opt-label { font-family: var(--text); font-style: italic; font-size: 1.1rem; color: var(--ink); margin-right: 0.15rem; }
+  .value-iter button { font-family: var(--sc); font-weight: 500; font-size: 1rem; letter-spacing: 0.02em; background: var(--box); color: var(--ink); border: 1.2px solid var(--ink); border-radius: 3px; padding: 0.15rem 0.7rem 0.25rem; cursor: pointer; }
+  .value-iter .vi-opt button { padding: 0.05rem 0.45rem 0.15rem; font-family: var(--text); font-variant-numeric: lining-nums tabular-nums; }
+  .value-iter button:hover { background: #fff6df; }
+  .value-iter button[aria-pressed=true] { background: var(--ink); color: var(--paper); }
+  .vi-slip { font-family: var(--sc); font-weight: 500; font-size: 1rem; color: var(--ink); display: inline-flex; gap: 0.35rem; align-items: center; cursor: pointer; }
+  .vi-slip input { accent-color: var(--ink); width: 1rem; height: 1rem; }
+  .vi-stats { display: flex; flex-wrap: wrap; gap: 0.2rem 1.1rem; font-size: 0.95rem; color: var(--ink-soft); }
+  .vi-stats b { color: var(--ink); font-variant-numeric: lining-nums tabular-nums; }
+  @media (max-width: 480px) { .value-iter button { font-size: 0.92rem; padding: 0.1rem 0.55rem 0.2rem; } }
+</style>
+
+<script>
+  type Kind = '.' | 'S' | 'G' | 'P' | 'W';
+
+  function initValueIteration(root: HTMLElement) {
+    if (root.dataset.ready) return;
+    root.dataset.ready = '1';
+    const layout: string[] = JSON.parse(root.dataset.layout || '[]');
+    const rows = layout.length, cols = layout[0].length, C = 60;
+    const kind = (x: number, y: number) => layout[y][x] as Kind;
+    const isTerminal = (x: number, y: number) => kind(x, y) === 'G' || kind(x, y) === 'P';
+    const start = (() => { for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) if (kind(x, y) === 'S') return [x, y]; return [0, rows - 1]; })();
+    const MOVES = [[0, -1], [1, 0], [0, 1], [-1, 0]]; // up, right, down, left
+    const STEP_COST = -0.02, STOP_BELOW = 1e-4, MAX_SWEEPS = 500;
+
+    let gamma = Number(root.dataset.gamma || 0.95);
+    let slip = false;
+    let V: number[][] = [];
+    let k = 0;
+    let delta: number | null = null;
+    let timer: number | null = null;
+
+    const $ = (sel: string) => root.querySelector(sel) as HTMLElement;
+
+    function land(x: number, y: number, a: number) {
+      const nx = x + MOVES[a][0], ny = y + MOVES[a][1];
+      if (nx < 0 || ny < 0 || nx >= cols || ny >= rows || kind(nx, ny) === 'W') return [x, y];
+      return [nx, ny];
+    }
+    // (probability, action actually taken): as asked, or 10% to each side when slippery
+    const outcomes = (a: number): Array<[number, number]> => slip ? [[0.8, a], [0.1, (a + 1) % 4], [0.1, (a + 3) % 4]] : [[1, a]];
+    function qValue(x: number, y: number, a: number, vals: number[][]) {
+      let q = 0;
+      for (const [p, b] of outcomes(a)) {
+        const [nx, ny] = land(x, y, b);
+        const r = kind(nx, ny) === 'G' ? 1 : kind(nx, ny) === 'P' ? -1 : STEP_COST;
+        q += p * (r + (isTerminal(nx, ny) ? 0 : gamma * vals[nx][ny]));
+      }
+      return q;
+    }
+
+    function reset() {
+      V = Array.from({ length: cols }, () => Array.from({ length: rows }, () => 0));
+      k = 0; delta = null;
+      draw();
+    }
+    function sweep() {
+      const next = V.map((col) => col.slice());
+      let biggest = 0;
+      for (let x = 0; x < cols; x++) for (let y = 0; y < rows; y++) {
+        if (kind(x, y) === 'W' || isTerminal(x, y)) continue;
+        let best = -Infinity;
+        for (let a = 0; a < 4; a++) best = Math.max(best, qValue(x, y, a, V));
+        biggest = Math.max(biggest, Math.abs(best - V[x][y]));
+        next[x][y] = best;
+      }
+      V = next; k += 1; delta = biggest;
+    }
+    const done = () => delta !== null && (delta < STOP_BELOW || k >= MAX_SWEEPS);
+
+    function shade(v: number) {
+      // paper -> green for value, paper -> red for cost (same colours as GridLearner)
+      const t = Math.max(-1, Math.min(1, v));
+      const [r0, g0, b0] = [255, 253, 248];
+      const [r1, g1, b1] = t >= 0 ? [63, 138, 79] : [178, 58, 42];
+      const m = Math.abs(t) * 0.55;
+      return `rgb(${Math.round(r0 + (r1 - r0) * m)} ${Math.round(g0 + (g1 - g0) * m)} ${Math.round(b0 + (b1 - b0) * m)})`;
+    }
+    // One best move: an arrow across the middle. Several tied moves: one short arrow
+    // out from the middle for each, so a tie reads as "any of these".
+    function arrowPath(x: number, y: number, a: number, fromCenter: boolean) {
+      const cx = x * C + C / 2, cy = y * C + C / 2 - 2, L = 10, H = 5;
+      const [dx, dy] = MOVES[a];
+      const tipX = cx + dx * (fromCenter ? L + 1 : L), tipY = cy + dy * (fromCenter ? L + 1 : L);
+      const tailX = fromCenter ? cx + dx * 3 : cx - dx * L, tailY = fromCenter ? cy + dy * 3 : cy - dy * L;
+      const px = -dy, py = dx; // perpendicular
+      return `M ${tailX} ${tailY} L ${tipX} ${tipY} M ${tipX - dx * H + px * H} ${tipY - dy * H + py * H} L ${tipX} ${tipY} L ${tipX - dx * H - px * H} ${tipY - dy * H - py * H}`;
+    }
+    function draw() {
+      root.querySelectorAll<SVGGElement>('[data-cell]').forEach((g) => {
+        const [x, y] = (g.dataset.cell || '0,0').split(',').map(Number);
+        const kd = g.dataset.kind as Kind;
+        const rect = g.querySelector('rect') as SVGRectElement;
+        if (kd === 'W') return;
+        if (kd === 'G') { rect.style.fill = shade(1); return; }
+        if (kd === 'P') { rect.style.fill = shade(-1); return; }
+        const v = V[x][y];
+        rect.style.fill = k === 0 ? '' : shade(v);
+        const label = g.querySelector('[data-val]') as SVGTextElement;
+        label.textContent = (Math.abs(v) < 0.005 ? 0 : v).toFixed(2);
+        label.classList.toggle('zero', k === 0);
+        // The best moves under the current values: none before the first sweep or
+        // while every move ties, and every tied move when several share the best value.
+        const qs = [0, 1, 2, 3].map((a) => qValue(x, y, a, V));
+        const best = Math.max(...qs), worst = Math.min(...qs);
+        const bestMoves = [0, 1, 2, 3].filter((a) => best - qs[a] < 1e-9);
+        const arrow = g.querySelector('.arrow') as SVGPathElement;
+        arrow.setAttribute('d', k === 0 || best - worst < 1e-9 ? '' : bestMoves.map((a) => arrowPath(x, y, a, bestMoves.length > 1)).join(' '));
+      });
+      $('[data-k]').textContent = String(k);
+      $('[data-delta]').textContent = delta === null ? 'none yet' : delta < STOP_BELOW ? `${delta === 0 ? '0' : delta.toExponential(1)}, under 0.0001, so it stops` : delta.toFixed(4);
+      $('[data-vstart]').textContent = V[start[0]][start[1]].toFixed(2);
+    }
+
+    const runBtn = $('[data-run]');
+    function stopRun() { if (timer !== null) { clearTimeout(timer); timer = null; } runBtn.setAttribute('aria-pressed', 'false'); runBtn.textContent = 'Sweep until it stops'; }
+    function tick() {
+      sweep(); draw();
+      if (done()) { stopRun(); return; }
+      timer = window.setTimeout(tick, k < 12 ? 320 : 60); // slow enough to see the first rings spread
+    }
+    runBtn.addEventListener('click', () => {
+      if (timer !== null) { stopRun(); return; }
+      if (done()) reset();
+      runBtn.setAttribute('aria-pressed', 'true'); runBtn.textContent = 'Pause';
+      tick();
+    });
+    $('[data-sweep]').addEventListener('click', () => { stopRun(); if (!done()) { sweep(); draw(); } });
+    $('[data-reset]').addEventListener('click', () => { stopRun(); reset(); });
+    root.querySelectorAll<HTMLButtonElement>('[data-gamma-choice]').forEach((b) => b.addEventListener('click', () => {
+      stopRun();
+      gamma = Number(b.dataset.gammaChoice);
+      root.querySelectorAll('[data-gamma-choice]').forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
+      reset();
+    }));
+    ($('[data-slip]') as HTMLInputElement).addEventListener('change', (e) => { stopRun(); slip = (e.target as HTMLInputElement).checked; reset(); });
+
+    new IntersectionObserver((entries) => { if (!entries[0].isIntersecting) stopRun(); }).observe(root);
+    reset();
+  }
+
+  function initAll() { document.querySelectorAll<HTMLElement>('[data-valueiter]').forEach(initValueIteration); }
+  document.addEventListener('DOMContentLoaded', initAll);
+  document.addEventListener('astro:page-load', initAll);
+</script>

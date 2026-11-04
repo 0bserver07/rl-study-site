@@ -7,6 +7,7 @@ Versions of this site. The lectures, notes, and exercises have their own history
 Built from the study repo at v1.0.0 (commit `219a97a`).
 
 - Yad's name links to [yad.codes](https://yad.codes) everywhere it appears: the home page byline, How this started, the About page, the essay byline, and the footer. The date in the home page byline still goes to How this started.
+- Lecture 01 and lecture 03 have a figure to try, between Before you start and the text. Lecture 01: value iteration on the home page's grid, one sweep at a time, with γ and a slippery floor. Lecture 03: the Q-learning agent from the home page. More lectures with exercises will get one.
 - The footer's version line links to this site's own code, [rl-study-site](https://github.com/0bserver07/rl-study-site).
 - The repo describes this site: its README no longer repeats the Mycelium theme's, CONTRIBUTING says which repo a correction goes to, and the theme's changelog, screenshots, and pull request checklist are gone. `package.json` points at this repo and this site instead of the theme. The About page no longer ships a drafting note in its source.
 - The study repo's first tagged release, v1.0.0. Its readme links back to this site, and dates the talks and courses list to 31 December 2016.

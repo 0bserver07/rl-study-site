@@ -26,6 +26,7 @@ import ImageLightbox from '../components/ImageLightbox.astro';
 import CodeCopyButton from '../components/CodeCopyButton.astro';
 import ConfidenceRating from '../components/ConfidenceRating.astro';
 import ImportanceRating from '../components/ImportanceRating.astro';
+import LectureFigure from '../components/roadmap/LectureFigure.astro';
 import { siteConfig } from '../config';
 import { getCollection } from 'astro:content';
 import studyTracks from '../study-tracks.json';
@@ -191,6 +192,8 @@ const displayTitle = isLecture ? title.replace(/^Lecture \d\d:\s*/, '') : title;
             </dl>
           </section>
         )}
+
+        {isLecture && <LectureFigure lecture={lectureNumber} />}
 
         {image && (
           <figure style="margin: 0 0 2rem">

@@ -1,0 +1,37 @@
+---
+/**
+ * LectureFigure: the interactive figure for a lecture, when it has one.
+ * The lectures are plain markdown in the study repo, so their figures live here,
+ * and PostLayout puts this between "Before you start" and the lecture text.
+ * The plan is one figure for each lecture that has an exercise (01, 02, 03, 04,
+ * 06, 09, 11, 15, 20): see it move here, then build it in the exercise.
+ */
+import ValueIteration from './ValueIteration.astro';
+import GridLearner from './GridLearner.astro';
+
+interface Props { lecture?: string }
+const { lecture } = Astro.props;
+
+const FIGURES: Record<string, { caption: string }> = {
+  '01': {
+    caption: 'Value iteration on the same grid as the agent on the home page. Each sweep updates every square once: its value becomes the best, over the four moves, of the reward plus γ times the value of where the move lands. The numbers and shading are those values, and the arrows are the best moves (several when they tie). The values spread out from the +1 one square per sweep. Try γ = 0.5, where the far-away +1 is worth less than the steps it takes to reach it. Then turn on the slippery floor, where a move goes the way you asked 80% of the time and 10% to each side, and pick γ = 0.99: some squares next to a pit now walk into a wall. It wastes a step, but no slip from there lands in the pit. <a href="/exercises/01-mdps/">Exercise 01</a> has you write this.',
+  },
+  '03': {
+    caption: 'Q-learning on the same grid, without being told the rewards. The agent finds them by moving, and the shading is its current best guess of each square’s value. Run shows every step; Train 50 episodes skips ahead. <a href="/exercises/03-q-learning/">Exercise 03</a> has you write this.',
+  },
+};
+const fig = lecture ? FIGURES[lecture] : undefined;
+---
+
+{fig && (
+  <section class="bk-box lecture-figure" aria-label="Try it">
+    <p class="lf-label">try it</p>
+    {lecture === '01' && <ValueIteration caption={fig.caption} />}
+    {lecture === '03' && <GridLearner caption={fig.caption} />}
+  </section>
+)}
+
+<style>
+  .lecture-figure { margin: 0 0 2.5rem; }
+  .lf-label { font-family: var(--sc); font-weight: 500; color: var(--muted); font-size: 1rem; letter-spacing: 0.02em; margin: 0 0 0.6rem; }
+</style>
