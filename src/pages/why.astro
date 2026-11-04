@@ -9,6 +9,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import Signup from '../components/roadmap/Signup.astro';
 import Essay from '../essays/why-rl.mdx';
+import { gardenerUrl } from '../config';
 
 const title = 'Why I keep coming back to reinforcement learning';
 const description = 'Play three slot machines first. Then the same idea, from 1988 to the way language models are trained now.';
@@ -22,7 +23,7 @@ const description = 'Play three slot machines first. Then the same idea, from 19
       <p class="bk-label">an essay</p>
       <h1>{title}</h1>
       <p class="bk-dek" style="margin: 0">{description}</p>
-      <p class="bk-essay-byline">by <a href="/about/">Yad Konrad</a> · November 2026</p>
+      <p class="bk-essay-byline">by <a href={gardenerUrl}>Yad Konrad</a> · November 2026</p>
     </header>
 
     <article class="bk-page prose-mycelium bk-essay">

@@ -4,14 +4,14 @@
  * and of the study repo this build is.
  */
 
-import { siteConfig } from '../config';
+import { siteConfig, gardenerUrl } from '../config';
 import study from '../generated/study.json';
 ---
 
 <footer class="bk-footer">
   <div class="bk-page">
     <p>
-      Study notes by {siteConfig.gardener}, started on 31 December 2016 as a list of talks and courses. Every lecture is marked unreviewed until a person has checked it. <a href="/about/">About and credit</a>.
+      Study notes by <a href={gardenerUrl}>{siteConfig.gardener}</a>, started on 31 December 2016 as a list of talks and courses. Every lecture is marked unreviewed until a person has checked it. <a href="/about/">About and credit</a>.
     </p>
     <nav aria-label="Footer">
       {siteConfig.navigation.items.map((item) => <a href={item.url}>{item.title.toLowerCase()}</a>)}
@@ -20,7 +20,7 @@ import study from '../generated/study.json';
       <a href={study.repo}>github</a>
     </nav>
     <p style="font-size: 0.92rem; color: var(--muted)">
-      Version <a href="/releases/">{study.version}</a>, built from the study repo at <a href={`${study.repo}/commit/${study.studyCommit}`}>{study.studyCommit}</a>{study.studyDate && ` (${study.studyDate})`}.
+      Version <a href="/releases/">{study.version}</a> of <a href="https://github.com/0bserver07/rl-study-site">this site</a>, built from the study repo at <a href={`${study.repo}/commit/${study.studyCommit}`}>{study.studyCommit}</a>{study.studyDate && ` (${study.studyDate})`}.
       Text licensed under <a href={`${study.repo}/blob/master/license.md`}>Creative Commons BY-NC-ND</a>.
       Set in Alegreya. Built with <a href="https://github.com/0bserver07/mycelium-theme">Mycelium</a> and Astro.
     </p>

@@ -21,7 +21,7 @@ import TrackMap from '../components/roadmap/TrackMap.astro';
 import GridLearner from '../components/roadmap/GridLearner.astro';
 import Signup from '../components/roadmap/Signup.astro';
 import study from '../generated/study.json';
-import { siteConfig } from '../config';
+import { siteConfig, gardenerUrl } from '../config';
 
 const lectures = study.lectures;
 const byNum = new Map(lectures.map((l) => [l.num, l]));
@@ -89,7 +89,7 @@ const everything = [
       <div>
         <p class="bk-label">study reinforcement learning</p>
         <h1>Watch an agent learn, then <span class="bk-hl">build one</span>.</h1>
-        <p class="bk-byline">by <a href="#history">{siteConfig.gardener}</a> · <span>started 31 December 2016</span></p>
+        <p class="bk-byline">by <a href={gardenerUrl}>{siteConfig.gardener}</a> · <a href="#history"><span>started 31 December 2016</span></a></p>
         <p class="bk-dek">
           The red dot starts out knowing nothing about this grid. Press Run and it wanders, falls into the pits, and now and then finds the +1.
           Every step updates its estimate of how much each move is worth. By fifty episodes it heads straight for the goal.
@@ -258,7 +258,7 @@ const everything = [
       <div class="bk-col">
         <h2><span class="bk-secnum">7</span>How this started</h2>
         <p class="bk-lead">
-          <span class="bk-hl">I'm {siteConfig.gardener}.</span> I started this repo on 31 December 2016 as a list of the talks and courses I was learning reinforcement learning from. It grew into the notes, lectures, and exercises on this site.
+          <span class="bk-hl">I'm <a href={gardenerUrl}>{siteConfig.gardener}</a>.</span> I started this repo on 31 December 2016 as a list of the talks and courses I was learning reinforcement learning from. It grew into the notes, lectures, and exercises on this site.
         </p>
       </div>
       <ol class="bk-history">

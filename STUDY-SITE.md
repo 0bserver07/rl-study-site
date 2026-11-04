@@ -15,7 +15,7 @@ A site for [Study-Reinforcement-Learning](https://github.com/0bserver07/Study-Re
 - `src/landscape.json` is the clickable map (`src/components/LandscapeMap.astro`): each family with its three answers (reward, data, steps) and every method linked to the lecture that covers it. The SVG from the README is still served at `/landscape.svg`.
 - `src/study-videos.json` lists the videos (David Silver's UCL course, CS 285, DeepMind x UCL 2018 and 2021). Every ID was checked against YouTube's oEmbed endpoint; `byLecture` maps lectures to videos whose titles name the topic. `/watch/` also shows the original 2016 list from `readme.md` as written.
 - The 2017 hand-written notes are rendered unchanged. One render-time fix: their contents list links to `#lec0` and so on, but the targets are written `<a name='#lec0'>`, which browsers don't match, so the sync gives each target the id the list expects. The notes themselves are not edited.
-- `site-pages/about.md` is the About page (a draft written from Yad's description; edit it directly). Anything in `site-pages/` is copied into the pages collection.
+- `site-pages/about.md` is the About page. Anything in `site-pages/` is copied into the pages collection.
 - `RELEASES.md` is rendered at `/releases/`.
 
 ## Pages
@@ -50,7 +50,7 @@ One thing to watch when editing `.astro` templates: Astro drops a line break tha
 - `src/pages/posts/index.astro`: lectures in curriculum order.
 - `astro.config.mjs`: math plugins off (the lectures write math as Unicode; remark-math would read "$1-$3" in lecture 27 as LaTeX), and the directive plugins off (remark-directive read ":1712" in "arXiv:1712.01815" as a directive and dropped it, mangling most arXiv IDs). Code is highlighted with Shiki's `github-light`.
 - `src/themes/index.ts`, `src/styles/global.css`, `src/layouts/BaseLayout.astro`: the paper palette (the `chalk` theme, labelled Paper), light mode only.
-- `src/config.ts`, `src/components/Header.astro`, `src/components/Footer.astro`: name, menu (Start, Library, Curriculum, Watch, About), license line, version line.
+- `src/config.ts`, `src/components/Header.astro`, `src/components/Footer.astro`: name, menu (Start, Library, Curriculum, Watch, About), license line, version line. `gardenerUrl` in `src/config.ts` is where Yad's name links (https://yad.codes).
 - `package.json`: renamed `rl-study-site`, with the site's own version.
 
 ## Versions and releases
@@ -73,9 +73,6 @@ npm ci --ignore-scripts          # install scripts aren't needed
 npm run dev                      # syncs, then serves on http://localhost:4321
 npm run build                    # syncs, then builds to dist/
 git submodule update --remote study   # pull the latest study repo
-
-# serve the build on the tailnet only (tmos-hq):
-npx astro preview --host 100.110.48.128 --port 4321 --allowed-hosts tmos-hq,tmos-hq.tail3b5b54.ts.net
 ```
 
 ## Publishing
@@ -86,6 +83,6 @@ The custom domain is `rl.yad.codes` (set in the repo's Pages settings, and as `s
 
 ## Not done yet
 
-- Every lecture is `unreviewed`. Decide whether the site goes public in that state before deploying.
+- Every lecture is still `unreviewed`.
 - The theme's `projects` and `docs` collections are still defined (empty), and the theme's `LinkPreview` asks for `projects` on every lecture page, which logs "collection is empty" warnings. Their routes, and the theme's `/posts/` index, pagination and tag pages, were removed in 0.2.0; `/posts/` redirects to `/library/` (`redirects` in `astro.config.mjs`).
 - The share card is `public/og-default.png`, drawn by `node scripts/og-default.mjs` (commit the PNG after changing it).

@@ -187,3 +187,6 @@ export const siteConfig: MyceliumConfig = {
 };
 
 export default siteConfig;
+
+// Where Yad's name links: the home page byline and history, the footer, the essay byline.
+export const gardenerUrl = 'https://yad.codes';

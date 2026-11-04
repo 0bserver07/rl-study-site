@@ -3,9 +3,7 @@ title: "About"
 description: "Who made this, how it started, and whose teaching it builds on."
 ---
 
-<!-- Draft written on 2026-10-29 from Yad's own description and the repo history. Edit freely. -->
-
-==I'm Yad Konrad.== I started this repo on 31 December 2016 as a list of the talks and courses I was learning reinforcement learning from: Joelle Pineau's and Pieter Abbeel's 2016 talks, Sutton and Barto's book, David Silver's course, and Berkeley's CS 294. It has grown into notes, a lecture series, tested exercises, and this site.
+<mark class="highlight">I'm <a href="https://yad.codes">Yad Konrad</a>.</mark> I started this repo on 31 December 2016 as a list of the talks and courses I was learning reinforcement learning from: Joelle Pineau's and Pieter Abbeel's 2016 talks, Sutton and Barto's book, David Silver's course, and Berkeley's CS 294. It has grown into notes, a lecture series, tested exercises, and this site.
 
 ## How I got here
 

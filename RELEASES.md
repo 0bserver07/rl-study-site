@@ -2,6 +2,15 @@
 
 Versions of this site. The lectures, notes, and exercises have their own history in the study repo's [changelog](/changelog/). Each release here names the study repo commit it was built from.
 
+## 0.4.0 (2026-11-03)
+
+Built from the study repo at v1.0.0 (commit `219a97a`).
+
+- Yad's name links to [yad.codes](https://yad.codes) everywhere it appears: the home page byline, How this started, the About page, the essay byline, and the footer. The date in the home page byline still goes to How this started.
+- The footer's version line links to this site's own code, [rl-study-site](https://github.com/0bserver07/rl-study-site).
+- The repo describes this site: its README no longer repeats the Mycelium theme's, CONTRIBUTING says which repo a correction goes to, and the theme's changelog, screenshots, and pull request checklist are gone. `package.json` points at this repo and this site instead of the theme. The About page no longer ships a drafting note in its source.
+- The study repo's first tagged release, v1.0.0. Its readme links back to this site, and dates the talks and courses list to 31 December 2016.
+
 ## 0.3.1 (2026-11-03)
 
 Built from the study repo at commit `1b7eae8`.

@@ -10,6 +10,5 @@
 ## Checklist
 
 - [ ] `npm run build` passes
-- [ ] Tested in light and dark mode
-- [ ] Tested with at least two themes (e.g. sage, ocean)
+- [ ] Checked the pages it changes at desktop and phone width
 - [ ] No new warnings in the console
