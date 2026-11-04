@@ -9,6 +9,7 @@
 import ValueIteration from './ValueIteration.astro';
 import GridLearner from './GridLearner.astro';
 import PPOClip from './PPOClip.astro';
+import RewardModelBT from './RewardModelBT.astro';
 import DPOPolicy from './DPOPolicy.astro';
 
 interface Props { lecture?: string }
@@ -24,6 +25,9 @@ const FIGURES: Record<string, { caption: string }> = {
   '06': {
     caption: 'PPO’s clipped objective for one action in one state, against the probability ratio r&nbsp;=&nbsp;π<sub>new</sub>(a|s)&nbsp;/&nbsp;π<sub>old</sub>(a|s). The ratio starts at 1, because each round of updates begins with the new policy equal to the old one. Drag the dot or use the slider; the dashed line is the unclipped r·A. With A&nbsp;=&nbsp;+1, L goes flat once r passes 1&nbsp;+&nbsp;ε, so making a good action more likely earns nothing more. With A&nbsp;=&nbsp;−1 it goes flat once r drops below 1&nbsp;−&nbsp;ε. On the other side of 1 the min keeps r·A itself, and nowhere is L above r·A. The figure is only this clipped term: <a href="/exercises/05-ppo/">Exercise 05</a> has you write all of PPO on CartPole, with GAE advantages, a value loss and an entropy bonus.',
   },
+  '09': {
+    caption: 'One prompt, five answers with hidden qualities q, and a simulated labeler who compares two, picked at random. It prefers i over j with probability σ(q<sub>i</sub> − q<sub>j</sub>): the better answer usually wins, but not always. The reward model is a table with one number per answer, and each click retrains it from scratch on every label so far (200 steps of gradient descent on the Bradley-Terry loss). Click Label 10 pairs twice: at 20 labels the ranking is right only about one time in four. By 500 it is nearly always right. <a href="/exercises/09-reward-model/">Exercise 09</a> has you write this loss for a small network that scores feature vectors.',
+  },
   '11': {
     caption: 'DPO on one prompt with five answers, A best to E worst by a true reward that training never sees. The data are all 10 pairs, with the better answer always chosen. The policy starts as a copy of the frozen reference, which favours C, and each step is full-batch gradient descent on the mean DPO loss. Press Run: probability flows to A. B wins 3 of its 4 pairs, yet its probability rises and then falls. β scales both the implicit reward and the size of each step, so it changes how fast the policy moves. It doesn’t hold the policy near the reference here: with every pair labelled the same way, longer training moves probability to A at every β. <a href="/exercises/11-dpo/">Exercise 11</a> has you write DPO for 8 prompts with noisy labels.',
   },
@@ -37,6 +41,7 @@ const fig = lecture ? FIGURES[lecture] : undefined;
     {lecture === '01' && <ValueIteration caption={fig.caption} />}
     {lecture === '03' && <GridLearner caption={fig.caption} />}
     {lecture === '06' && <PPOClip caption={fig.caption} />}
+    {lecture === '09' && <RewardModelBT caption={fig.caption} />}
     {lecture === '11' && <DPOPolicy caption={fig.caption} />}
   </section>
 )}
