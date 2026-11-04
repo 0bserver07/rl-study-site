@@ -1,0 +1,320 @@
+---
+/**
+ * ActorCriticGrid: tabular Monte Carlo actor-critic on the home page's grid
+ * (GridLearner): the same squares and rewards. The +1 goal and the -1 pits end
+ * the episode, every other move costs 0.02, walls and edges leave you in place,
+ * gamma = 0.95, and an episode stops after 60 steps.
+ * Actor: preferences h(s, a), with pi(.|s) = softmax(h(s, .)). Critic: V(s).
+ * Both start at zero. After each episode, with G_t the discounted return from step t:
+ *   A_t = G_t - V(s_t)                                  (V from before this update)
+ *   V(s_t) += alpha_v * (G_t - V(s_t))                   (every visit, in order)
+ *   h(s_t, .) += alpha_pi * A_t * (onehot(a_t) - pi(.|s_t))  (pi as it was when acting)
+ * alpha_v = alpha_pi = 0.1. Exercise 04-actor-critic is this update with two
+ * networks on CartPole in place of the tables (and Adam in place of plain steps).
+ * Shading is V(s), the critic. The arrow is the actor's most likely move, darker
+ * when it's more likely (short arrows for a tie at the top, none when all four
+ * tie). The last episode's path is coloured by A_t: green where the return beat
+ * the critic's guess, red where it fell short.
+ */
+interface Props { caption?: string }
+const { caption } = Astro.props;
+
+// Same grid as GridLearner.astro. '.' empty, 'S' start, 'G' goal (+1), 'P' pit (-1), 'W' wall
+const LAYOUT = [
+  '.....G',
+  '.WW.P.',
+  '....W.',
+  '.WP...',
+  'S...W.',
+];
+const C = 60;
+const cols = LAYOUT[0].length, rows = LAYOUT.length;
+---
+
+<figure class="ac-grid" data-acgrid data-layout={JSON.stringify(LAYOUT)}>
+  <svg viewBox={`0 0 ${cols * C} ${rows * C}`} role="img" aria-label="The gridworld from the home page. Shading is the critic's value of each square, arrows are the actor's most likely moves, and the coloured trail is the last episode, green where it did better than the critic expected and red where it did worse." data-board>
+    {LAYOUT.map((row, y) => row.split('').map((ch, x) => (
+      <g data-cell={`${x},${y}`} data-kind={ch}>
+        <rect x={x * C} y={y * C} width={C} height={C} class:list={['cell', { wall: ch === 'W' }]} />
+        {ch === 'G' && <text x={x * C + C / 2} y={y * C + C / 2 + 7} text-anchor="middle" class="lbl goal">+1</text>}
+        {ch === 'P' && <text x={x * C + C / 2} y={y * C + C / 2 + 7} text-anchor="middle" class="lbl pit">−1</text>}
+        {ch === 'S' && <text x={x * C + 4} y={y * C + 11} class="lbl start">start</text>}
+      </g>
+    )))}
+    <g class="trail" data-trail></g>
+    <g class="arrows">
+      {LAYOUT.map((row, y) => row.split('').map((ch, x) => (ch === '.' || ch === 'S') && <path class="arrow" d="" data-arrow={`${x},${y}`} />))}
+    </g>
+    <circle class="agent" r="9" cx={C / 2} cy={(rows - 1) * C + C / 2} data-agent />
+  </svg>
+
+  <div class="ac-controls">
+    <button type="button" data-run aria-pressed="false">Run</button>
+    <button type="button" data-fast>Train 50 episodes</button>
+    <button type="button" data-reset>Reset</button>
+  </div>
+
+  <div class="ac-stats" aria-live="polite">
+    <p class="ac-nums">
+      <span>episodes <b data-episodes>0</b></span>
+      <span>reached the goal in the last 20: <b data-wins>0 of 0</b></span>
+      <span>last return G₀ <b data-last>none yet</b></span>
+    </p>
+    <p class="ac-line" data-line>No episodes yet. The actor picks every move at random, and the critic expects 0 everywhere.</p>
+  </div>
+
+  {caption && <figcaption set:html={caption} />}
+</figure>
+
+<style>
+  .ac-grid { margin: 0; }
+  .ac-grid svg[data-board] { width: 100%; height: auto; display: block; border: 1.2px solid var(--ink); background: var(--box); }
+  .ac-grid .cell { fill: var(--box); stroke: var(--rule); stroke-width: 1; transition: fill 0.25s; }
+  .ac-grid .cell.wall { fill: #3b362e; stroke: #3b362e; }
+  .ac-grid .lbl { font-family: var(--text); font-weight: 800; font-size: 20px; pointer-events: none; }
+  .ac-grid .lbl.goal { fill: #2f6f3e; }
+  .ac-grid .lbl.pit { fill: var(--red); }
+  .ac-grid .lbl.start { font-family: var(--sc); font-weight: 500; font-size: 10px; fill: var(--muted); }
+  /* the trail's paths are made in the script, so they need :global to get these styles */
+  .ac-grid .trail :global(path) { fill: none; stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; opacity: 0.5; }
+  .ac-grid .trail :global(path.better) { stroke: rgb(63 138 79); }
+  .ac-grid .trail :global(path.worse) { stroke: var(--red); }
+  .ac-grid .trail :global(path.even) { stroke: var(--muted); }
+  .ac-grid .trail :global(path.live) { stroke: var(--muted); opacity: 0.35; }
+  .ac-grid .arrow { fill: none; stroke: var(--ink); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+  .ac-grid .agent { fill: var(--ink); stroke: #fff; stroke-width: 2; transition: cx 0.07s linear, cy 0.07s linear; pointer-events: none; }
+  .ac-controls { display: flex; gap: 0.6rem; flex-wrap: wrap; margin: 0.7rem 0 0.4rem; }
+  .ac-grid button { font-family: var(--sc); font-weight: 500; font-size: 1rem; letter-spacing: 0.02em; background: var(--box); color: var(--ink); border: 1.2px solid var(--ink); border-radius: 3px; padding: 0.15rem 0.7rem 0.25rem; cursor: pointer; }
+  .ac-grid button:hover { background: #fff6df; }
+  .ac-grid button[aria-pressed=true] { background: var(--ink); color: var(--paper); }
+  .ac-stats { font-size: 0.95rem; color: var(--ink-soft); }
+  .ac-stats p { margin: 0 !important; }
+  .ac-nums { display: flex; flex-wrap: wrap; gap: 0.2rem 1.1rem; }
+  .ac-stats b { color: var(--ink); font-variant-numeric: lining-nums tabular-nums; }
+  .ac-line { margin-top: 0.25rem !important; color: var(--ink); font-variant-numeric: lining-nums; min-height: 3em; }
+  .ac-line :global(.better) { color: #2f6f3e; font-weight: 700; }
+  .ac-line :global(.worse) { color: var(--red); font-weight: 700; }
+  @media (max-width: 480px) { .ac-grid button { font-size: 0.92rem; padding: 0.1rem 0.55rem 0.2rem; } .ac-line { min-height: 4.5em; } }
+  @media (prefers-reduced-motion: reduce) { .ac-grid .agent, .ac-grid .cell { transition: none; } }
+</style>
+
+<script>
+  type Kind = '.' | 'S' | 'G' | 'P' | 'W';
+  // One step of an episode: where the agent was, what it did, where it landed, the
+  // reward, and the policy it acted with.
+  type Step = { x: number; y: number; a: number; nx: number; ny: number; r: number; pi: number[] };
+
+  const GAMMA = 0.95, STEP_COST = -0.02, MAX_STEPS = 60;
+  const ALPHA_V = 0.1, ALPHA_PI = 0.1;
+  const STEP_MS = 80, END_PAUSE_MS = 900; // Run: one move every 80 ms, then a pause on the coloured trail
+  const MOVE_NAMES = ['up', 'right', 'down', 'left'];
+  const SVGNS = 'http://www.w3.org/2000/svg';
+
+  function softmax(v: number[]) {
+    const m = Math.max(...v);
+    const e = v.map((t) => Math.exp(t - m));
+    const s = e.reduce((p, q) => p + q, 0);
+    return e.map((t) => t / s);
+  }
+  const signed = (x: number, d: number) => (x > 0 ? '+' : x < 0 ? '−' : '') + Math.abs(x).toFixed(d);
+
+  function initActorCriticGrid(root: HTMLElement) {
+    if (root.dataset.ready) return;
+    root.dataset.ready = '1';
+    const layout: string[] = JSON.parse(root.dataset.layout || '[]');
+    const rows = layout.length, cols = layout[0].length, C = 60;
+    const kind = (x: number, y: number) => layout[y][x] as Kind;
+    const start = (() => { for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) if (kind(x, y) === 'S') return [x, y]; return [0, rows - 1]; })();
+    const MOVES = [[0, -1], [1, 0], [0, 1], [-1, 0]]; // up, right, down, left
+
+    let h: number[][][] = [];      // actor preferences h[x][y][a]
+    let V: number[][] = [];        // critic V[x][y]
+    let episodes = 0;
+    let wins: boolean[] = [];      // reached the goal, last 20 episodes
+    let lastG0: number | null = null;
+    let lastSteps: Step[] = [];    // the last finished episode
+    let lastAdv: number[] = [];    // its advantages A_t
+    let live: Step[] = [];         // the episode in progress (Run)
+    let pos = [...start];
+    let freshStart = true;         // the next move begins a new episode from the start square
+    let timer: number | null = null;
+
+    const $ = (sel: string) => root.querySelector(sel) as HTMLElement;
+    const agent = $('[data-agent]') as unknown as SVGCircleElement;
+    const trail = $('[data-trail]') as unknown as SVGGElement;
+
+    function reset() {
+      h = Array.from({ length: cols }, () => Array.from({ length: rows }, () => [0, 0, 0, 0]));
+      V = Array.from({ length: cols }, () => Array.from({ length: rows }, () => 0));
+      episodes = 0; wins = []; lastG0 = null; lastSteps = []; lastAdv = []; live = [];
+      pos = [...start]; freshStart = true;
+      draw();
+    }
+
+    function envStep(x: number, y: number, a: number) {
+      let nx = x + MOVES[a][0], ny = y + MOVES[a][1];
+      if (nx < 0 || ny < 0 || nx >= cols || ny >= rows || kind(nx, ny) === 'W') { nx = x; ny = y; }
+      const k = kind(nx, ny);
+      return { nx, ny, r: k === 'G' ? 1 : k === 'P' ? -1 : STEP_COST, done: k === 'G' || k === 'P' };
+    }
+    // One move of the current episode. Returns true when the episode has just ended.
+    function move(): boolean {
+      if (freshStart) { pos = [...start]; live = []; freshStart = false; }
+      const [x, y] = pos;
+      const pi = softmax(h[x][y]);
+      let u = Math.random(), a = 0;
+      while (a < 3 && u >= pi[a]) { u -= pi[a]; a += 1; }
+      const { nx, ny, r, done } = envStep(x, y, a);
+      live.push({ x, y, a, nx, ny, r, pi });
+      pos = [nx, ny];
+      if (done || live.length >= MAX_STEPS) { learn(live); live = []; freshStart = true; return true; }
+      return false;
+    }
+    // The end-of-episode update: returns, advantages against the critic as it was,
+    // then the critic and the actor, step by step.
+    function learn(steps: Step[]) {
+      const T = steps.length;
+      const G = new Array<number>(T);
+      let g = 0;
+      for (let t = T - 1; t >= 0; t--) { g = steps[t].r + GAMMA * g; G[t] = g; }
+      const A = steps.map((s, t) => G[t] - V[s.x][s.y]);
+      steps.forEach((s, t) => {
+        V[s.x][s.y] += ALPHA_V * (G[t] - V[s.x][s.y]);
+        for (let b = 0; b < 4; b++) h[s.x][s.y][b] += ALPHA_PI * A[t] * ((b === s.a ? 1 : 0) - s.pi[b]);
+      });
+      const last = steps[T - 1];
+      episodes += 1;
+      wins.push(kind(last.nx, last.ny) === 'G');
+      if (wins.length > 20) wins.shift();
+      lastG0 = G[0]; lastSteps = steps; lastAdv = A;
+    }
+
+    function shade(v: number) {
+      // paper -> green for value, paper -> red for cost (same colours as GridLearner)
+      const t = Math.max(-1, Math.min(1, v));
+      const [r0, g0, b0] = [255, 253, 248];
+      const [r1, g1, b1] = t >= 0 ? [63, 138, 79] : [178, 58, 42];
+      const m = Math.abs(t) * 0.55;
+      return `rgb(${Math.round(r0 + (r1 - r0) * m)} ${Math.round(g0 + (g1 - g0) * m)} ${Math.round(b0 + (b1 - b0) * m)})`;
+    }
+    // One most likely move: an arrow across the middle. Several tied at the top: a
+    // short arrow out from the middle for each (as in ValueIteration).
+    function arrowPath(x: number, y: number, a: number, fromCenter: boolean) {
+      const cx = x * C + C / 2, cy = y * C + C / 2, L = 12, H = 5.5;
+      const [dx, dy] = MOVES[a];
+      const tipX = cx + dx * (fromCenter ? L + 1 : L), tipY = cy + dy * (fromCenter ? L + 1 : L);
+      const tailX = fromCenter ? cx + dx * 3 : cx - dx * L, tailY = fromCenter ? cy + dy * 3 : cy - dy * L;
+      const px = -dy, py = dx; // perpendicular
+      return `M ${tailX} ${tailY} L ${tipX} ${tipY} M ${tipX - dx * H + px * H} ${tipY - dy * H + py * H} L ${tipX} ${tipY} L ${tipX - dx * H - px * H} ${tipY - dy * H - py * H}`;
+    }
+    // A step of the trail: centre to centre, nudged sideways so a step back doesn't
+    // hide the step forward; a bump into a wall or edge is a short stub toward it.
+    function stepPath(s: Step) {
+      const [dx, dy] = MOVES[s.a];
+      const off = 4, ox = -dy * off, oy = dx * off;
+      const x1 = s.x * C + C / 2 + ox, y1 = s.y * C + C / 2 + oy;
+      const bumped = s.nx === s.x && s.ny === s.y;
+      const x2 = bumped ? x1 + dx * 20 : s.nx * C + C / 2 + ox, y2 = bumped ? y1 + dy * 20 : s.ny * C + C / 2 + oy;
+      return `M ${x1} ${y1} L ${x2} ${y2}`;
+    }
+
+    function drawTrail() {
+      const steps = live.length ? live : lastSteps;
+      const coloured = !live.length;
+      const frag = document.createDocumentFragment();
+      steps.forEach((s, t) => {
+        const p = document.createElementNS(SVGNS, 'path');
+        p.setAttribute('d', stepPath(s));
+        p.dataset.s = `${s.x},${s.y}`; p.dataset.a = String(s.a); p.dataset.t = String(t);
+        const title = document.createElementNS(SVGNS, 'title');
+        if (coloured) {
+          const A = lastAdv[t];
+          p.setAttribute('class', A > 0 ? 'better' : A < 0 ? 'worse' : 'even');
+          title.textContent = `step ${t + 1}: ${MOVE_NAMES[s.a]}, advantage ${signed(A, 3)}`;
+        } else {
+          p.setAttribute('class', 'live');
+          title.textContent = `step ${t + 1}: ${MOVE_NAMES[s.a]}`;
+        }
+        p.appendChild(title);
+        frag.appendChild(p);
+      });
+      trail.replaceChildren(frag);
+    }
+
+    function draw() {
+      root.querySelectorAll<SVGGElement>('[data-cell]').forEach((g) => {
+        const [x, y] = (g.dataset.cell || '0,0').split(',').map(Number);
+        const kd = g.dataset.kind as Kind;
+        const rect = g.querySelector('rect') as SVGRectElement;
+        if (kd === 'W') return;
+        if (kd === 'G') { rect.style.fill = shade(1); return; }
+        if (kd === 'P') { rect.style.fill = shade(-1); return; }
+        rect.style.fill = episodes === 0 ? '' : shade(V[x][y]);
+      });
+      root.querySelectorAll<SVGPathElement>('[data-arrow]').forEach((p) => {
+        const [x, y] = (p.dataset.arrow || '0,0').split(',').map(Number);
+        const pi = softmax(h[x][y]);
+        const top = Math.max(...pi), low = Math.min(...pi);
+        const best = [0, 1, 2, 3].filter((a) => top - pi[a] < 1e-12);
+        if (top - low < 1e-12) { p.setAttribute('d', ''); p.removeAttribute('opacity'); return; }
+        p.setAttribute('d', best.map((a) => arrowPath(x, y, a, best.length > 1)).join(' '));
+        // a quarter (no preference) -> faint, 1 -> solid
+        p.setAttribute('opacity', (0.12 + 0.88 * (top - 0.25) / 0.75).toFixed(3));
+      });
+      drawTrail();
+      agent.setAttribute('cx', String(pos[0] * C + C / 2));
+      agent.setAttribute('cy', String(pos[1] * C + C / 2));
+      $('[data-episodes]').textContent = String(episodes);
+      $('[data-wins]').textContent = `${wins.filter(Boolean).length} of ${wins.length}`;
+      $('[data-last]').textContent = lastG0 === null ? 'none yet' : lastG0.toFixed(2);
+      drawLine();
+    }
+
+    function drawLine() {
+      const line = $('[data-line]');
+      if (!lastSteps.length) { line.textContent = 'No episodes yet. The actor picks every move at random, and the critic expects 0 everywhere.'; return; }
+      const end = lastSteps[lastSteps.length - 1];
+      const k = kind(end.nx, end.ny), n = lastSteps.length;
+      const how = k === 'G' ? `reached the goal in ${n} step${n === 1 ? '' : 's'}` : k === 'P' ? `fell into a pit after ${n} step${n === 1 ? '' : 's'}` : `stopped after ${n} steps`;
+      const better = lastAdv.filter((A) => A > 0).length, worse = lastAdv.filter((A) => A < 0).length;
+      line.replaceChildren(
+        `Last episode: ${how}. `,
+        Object.assign(document.createElement('span'), { className: 'better', textContent: `${better} step${better === 1 ? '' : 's'}` }),
+        ' did better than the critic expected and ',
+        Object.assign(document.createElement('span'), { className: 'worse', textContent: `${worse}` }),
+        ' did worse.',
+      );
+    }
+
+    const runBtn = $('[data-run]');
+    function stopRun() { if (timer !== null) { clearTimeout(timer); timer = null; } runBtn.setAttribute('aria-pressed', 'false'); runBtn.textContent = 'Run'; }
+    function tick() {
+      const ended = move();
+      draw();
+      timer = window.setTimeout(tick, ended ? END_PAUSE_MS : STEP_MS);
+    }
+    runBtn.addEventListener('click', () => {
+      if (timer !== null) { stopRun(); return; }
+      runBtn.setAttribute('aria-pressed', 'true'); runBtn.textContent = 'Pause';
+      tick();
+    });
+    // Train 50 episodes drops an episode left half-run by Pause (nothing was learned
+    // from it yet) and runs 50 whole ones.
+    $('[data-fast]').addEventListener('click', () => {
+      stopRun();
+      freshStart = true;
+      const target = episodes + 50;
+      while (episodes < target) move();
+      draw();
+    });
+    $('[data-reset]').addEventListener('click', () => { stopRun(); reset(); });
+
+    // Pause when the figure scrolls out of view, so it doesn't run unseen.
+    new IntersectionObserver((entries) => { if (!entries[0].isIntersecting) stopRun(); }).observe(root);
+    reset();
+  }
+
+  function initAll() { document.querySelectorAll<HTMLElement>('[data-acgrid]').forEach(initActorCriticGrid); }
+  document.addEventListener('DOMContentLoaded', initAll);
+  document.addEventListener('astro:page-load', initAll);
+</script>
