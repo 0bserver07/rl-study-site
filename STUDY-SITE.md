@@ -44,7 +44,7 @@ One thing to watch when editing `.astro` templates: Astro drops a line break tha
 ## Changes to the theme
 
 - `src/content.config.ts`: posts and pages load from `src/generated/`; posts gain the curriculum fields. The theme's sample posts in `src/content/` are no longer loaded.
-- `src/layouts/PostLayout.astro`: lecture number, track, and time above the title; the review-status stamp; a "Read first / You're done when you can / Exercise / On video" box; previous/next in curriculum order.
+- `src/layouts/PostLayout.astro`: lecture number, track, and time above the title; the review-status stamp; a "Read first / You're done when you can / Exercise / On video" box; previous/next in curriculum order; the lecture's own share card, passed to `BaseLayout`'s `shareImage` prop (see Share cards).
 - `src/pages/index.astro`: the hub described above. `src/pages/start.astro` and `src/pages/tracks/[id].astro` are new.
 - `src/pages/[...slug].astro`: a book-style head (kicker, title, description) for the generated pages, wider for tables, and mermaid diagrams.
 - `src/components/GlobalGraph.astro`: counts markdown links between lectures as edges; nodes and legend use track colours.
@@ -76,6 +76,30 @@ npm run build                    # syncs, then builds to dist/
 git submodule update --remote study   # pull the latest study repo
 ```
 
+## Share cards
+
+A link to the site shows a 1200×630 card (`og:image` and `twitter:image`). Every page uses `public/og-default.png`, drawn by `node scripts/og-default.mjs`, except the lectures: each has its own card at `public/og/lectures/<slug>.png`. `PostLayout` passes it to `BaseLayout` as `shareImage`, an absolute URL. A lecture with no card file gets the default, and the build warns about it.
+
+A lecture's card has its number and track (with the track's colour), its title, and "by Yad Konrad · rl.yad.codes". The title wraps at spaces to at most three lines, shrinking if it has to. A lecture with a figure has a still of the figure on the right, taken after it has learned something; the others are text only, with the lecture number set large in the track's colour.
+
+The cards are made in two steps. Commit what both write; neither runs in CI.
+
+1. `scripts/og-stills.mjs` captures each figure from the built site in headless Chrome and saves it to `scripts/og/stills/<NN>.png`. It needs the site served and Chrome listening on a debugging port:
+
+   ```bash
+   npm run build
+   npx astro preview --port 4321 &
+   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new \
+     --remote-debugging-port=9222 --user-data-dir=/tmp/og-chrome about:blank &
+   node scripts/og-stills.mjs          # all nine figures, or only some: node scripts/og-stills.mjs 04 15
+   ```
+
+   `--site` and `--cdp` point it at another preview URL or Chrome port. It drives each figure with its own buttons (200 episodes, sweeps until the values stop changing, 500 labels, and so on) under a seeded `Math.random`, so a rerun gives the same stills. If a run doesn't show what the figure is for (the actor-critic agent reaching the goal, the best slot machine leading, the novelty-bonus agent reaching the +1, 56 taking over GRPO's policy), it tries the next seed. Stop the preview and Chrome when it's done.
+
+2. `node scripts/og-lectures.mjs` draws a card for every lecture from `src/generated/lectures` and the stills, without a browser. Run `npm run sync` or a build first. `node scripts/og-lectures.mjs 04 20` redraws only those two.
+
+Redraw the cards when a lecture is added or its title or track changes. When a figure changes, capture its still again, then redraw.
+
 ## Publishing
 
 The repo is https://github.com/0bserver07/rl-study-site; work on `master`, and every push to it redeploys. `.github/workflows/deploy.yml` builds `master` with the pinned `study/` submodule and publishes `dist/` to GitHub Pages; `ci.yml` builds pull requests. The Pages environment deploys only from `master`.
@@ -86,4 +110,4 @@ The custom domain is `rl.yad.codes` (set in the repo's Pages settings, and as `s
 
 - Every lecture is still `unreviewed`.
 - The theme's `projects` and `docs` collections are still defined (empty), and the theme's `LinkPreview` asks for `projects` on every lecture page, which logs "collection is empty" warnings. Their routes, and the theme's `/posts/` index, pagination and tag pages, were removed in 0.2.0; `/posts/` redirects to `/library/` (`redirects` in `astro.config.mjs`).
-- The share card is `public/og-default.png`, drawn by `node scripts/og-default.mjs` (commit the PNG after changing it).
+- Only lectures have their own share card; every other page uses `public/og-default.png` (see Share cards).

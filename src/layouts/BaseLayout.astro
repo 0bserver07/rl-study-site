@@ -32,6 +32,8 @@ export interface Props {
   title?: string;
   description?: string;
   image?: string;
+  /** Absolute URL of this page's own share card (og:image, twitter:image). */
+  shareImage?: string;
   noIndex?: boolean;
 }
 
@@ -39,15 +41,19 @@ const {
   title,
   description = siteConfig.description,
   image,
+  shareImage,
   noIndex = false,
 } = Astro.props;
 
 const pageTitle = title ? `${title} | ${siteConfig.name}` : siteConfig.name;
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
-// Use post image if provided, otherwise fall back to default OG image
-const ogImage = image
-  ? new URL(image, Astro.site)
-  : new URL('/og-default.png', Astro.site);
+// Study site: the page's own share card if it has one (each lecture does),
+// else the post image if provided, else the default card.
+const ogImage = shareImage
+  ? new URL(shareImage, Astro.site)
+  : image
+    ? new URL(image, Astro.site)
+    : new URL('/og-default.png', Astro.site);
 ---
 
 <!doctype html>

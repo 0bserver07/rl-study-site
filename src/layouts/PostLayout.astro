@@ -29,6 +29,8 @@ import ImportanceRating from '../components/ImportanceRating.astro';
 import LectureFigure from '../components/roadmap/LectureFigure.astro';
 import { siteConfig } from '../config';
 import { getCollection } from 'astro:content';
+import { existsSync } from 'node:fs';
+import path from 'node:path';
 import studyTracks from '../study-tracks.json';
 import type { Post, GrowthStatus } from '../types';
 import type { GrowthMetrics } from '../utils/growth';
@@ -120,9 +122,15 @@ const allPosts = await getCollection('posts');
 const totalLectures = allPosts.filter((p) => p.data.lectureNumber).length;
 const trackColor = studyTracks.find((t) => t.id === track)?.color ?? 'var(--yellow)';
 const displayTitle = isLecture ? title.replace(/^Lecture \d\d:\s*/, '') : title;
+
+// Study site: each lecture's share card, drawn by scripts/og-lectures.mjs. A
+// lecture added since the cards were last drawn keeps the default card.
+const hasCard = isLecture && existsSync(path.join(process.cwd(), 'public/og/lectures', `${post.id}.png`));
+if (isLecture && !hasCard) console.warn(`[share cards] no public/og/lectures/${post.id}.png; run node scripts/og-lectures.mjs`);
+const shareImage = hasCard ? new URL(`/og/lectures/${post.id}.png`, Astro.site).href : undefined;
 ---
 
-<BaseLayout title={title} description={description} image={image}>
+<BaseLayout title={title} description={description} image={image} shareImage={shareImage}>
   <!-- JSON-LD structured data -->
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   <Header slot="header" />
