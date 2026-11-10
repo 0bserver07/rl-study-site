@@ -13,7 +13,9 @@
  * for reaching s', where N(s') counts arrivals at s' (this one included). It's the
  * tabular stand-in for the RND bonus of exercise 20 (the error of a network trained
  * to match a fixed random network), which also shrinks as a state gets familiar.
- * Exercise 20's own chain is gentler: a move left goes back one square.
+ * Exercise 20 uses the same lock (since study v1.1.0). On this lock any positive
+ * bonus gives the same runs as the count bonus, even a constant one; what the count
+ * adds, telling new squares from old ones, this lock never needs.
  * Shading is how often each square has been visited (the start counts once per
  * episode; log scale shared by both strips); the caret marks the furthest square
  * reached. Hover a square for its count and Q-values.

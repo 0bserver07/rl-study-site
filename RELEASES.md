@@ -2,6 +2,16 @@
 
 Versions of this site. The lectures, notes, and exercises have their own history in the study repo's [changelog](/changelog/). Each release here names the study repo commit it was built from.
 
+## 0.6.0 (2026-11-10)
+
+Built from the study repo at v1.1.0 (commit `febbd72`).
+
+- Every lecture link now shows its own share card when it's posted on X or elsewhere: the lecture's number, track and title, and its figure where it has one.
+- The lectures carry the study repo's v1.1.0 fixes: PPO's tuning advice (two tips pointed the wrong way, and "real-world usage" named games that weren't trained with PPO), DPO's β (backwards in two places), GRPO's NaN for a group of one, actor-critic's advice on normalizing, and lists that rendered as one paragraph. Exercise 20 is rebuilt on the same combination lock as the lecture 20 figure.
+- The lecture 20 figure's caption now says that on this lock any positive bonus works, even a constant one, so the novelty bonus isn't what opens it.
+- Diagrams drawn with box-drawing characters (20 of them on 9 pages) join up instead of breaking apart between lines.
+- Two dead links: the CS 294 course page on /watch/, and a Planning Algorithms page in the 2017 notes.
+
 ## 0.5.0 (2026-11-04)
 
 Built from the study repo at v1.0.0 (commit `219a97a`).
