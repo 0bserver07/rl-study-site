@@ -248,6 +248,8 @@ button, input, select, textarea { font-family: inherit; }
    every block without highlighting (no language) invisible. Highlighted tokens keep their own inline colours. */
 /* Comments: github-light-high-contrast's grey is 4.35:1 on paper; this one is 4.88:1 and still reads as muted. */
 .prose-mycelium pre span[style*="#66707B" i] { color: #5f6873 !important; }
+/* Box-drawing diagrams (wrapped by the sync script) need tight lines so the strokes join. */
+.prose-mycelium .ascii-art pre, .prose-mycelium .ascii-art pre code { line-height: 1.2 !important; }
 .prose-mycelium table { font-size: 1rem; }
 /* On phones, a wide table scrolls inside its own box instead of widening the page,
    and a long path, URL or identifier breaks rather than pushing past the edge. */

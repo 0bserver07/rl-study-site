@@ -164,6 +164,14 @@ function assetUrlFor(relPath) {
   return `/study-assets/${relPath}`;
 }
 
+// Diagrams drawn with box-drawing characters inside a plain code block need tighter line spacing
+// than code, or their vertical strokes break apart. Wrap such blocks so the CSS can tell them apart.
+const BOX_CHARS = /[\u2500-\u257f\u25b2-\u25c0]/;
+function markAsciiArt(markdown) {
+  return markdown.replace(/^```(text|)\n([\s\S]*?)^```[ \t]*$/gm, (block, lang, inner) =>
+    BOX_CHARS.test(inner) ? `<div class="ascii-art">\n\n${block}\n\n</div>` : block);
+}
+
 function rewriteLinks(markdown, srcDir, unresolved) {
   // Leave fenced code blocks alone, and inline code spans and escaped brackets
   // (`S[π](s_t)`, S\[π](s_t)), which are text that only looks like a link.
@@ -268,7 +276,7 @@ for (const [i, num] of order.entries()) {
     .replace(/^\s+/, '');
 
   const unresolved = [];
-  body = rewriteLinks(body, 'notes/lectures', unresolved);
+  body = markAsciiArt(rewriteLinks(body, 'notes/lectures', unresolved));
   if (unresolved.length) {
     unresolvedTotal += unresolved.length;
     console.warn(`sync-study: ${file}: left ${unresolved.length} unresolved link(s): ${unresolved.join(', ')}`);
@@ -344,6 +352,7 @@ writePage('curriculum', {
 // ---------------------------------------------------------------------------
 // Hand-written notes (2017), shown as written, plus a small index page
 // ---------------------------------------------------------------------------
+const MOVED_LINKS = [['http://planning.cs.uiuc.edu/', 'https://lavalle.pl/planning/']];
 for (const n of HANDWRITTEN) {
   const rel = `${n.dir}/readme.md`;
   const raw = read(rel).replace(/^<!--[\s\S]*?-->\s*/, '');
@@ -351,7 +360,9 @@ for (const n of HANDWRITTEN) {
   // The contents list links to #lec0, #lec1, ...; the targets are written <a name='#lec0'>,
   // which browsers don't match. Give each target the id the list expects; the text is untouched.
   const anchored = raw.replace(/<a name=(['"])#([\w-]+)\1>/g, '<a id="$2">');
-  writePage(n.slug, { title: n.title, description: n.description }, `${note}\n\n${rewriteLinks(anchored, n.dir, [])}`);
+  // Pages that moved after 2017: link to where they live now. The words are untouched.
+  const relinked = MOVED_LINKS.reduce((s, [from, to]) => s.split(from).join(to), anchored);
+  writePage(n.slug, { title: n.title, description: n.description }, `${note}\n\n${rewriteLinks(relinked, n.dir, [])}`);
 }
 writePage('notes', {
   title: 'Notes from 2017',
@@ -418,7 +429,7 @@ const sourceLine = (rel) => `<p class="bk-meta">Source: <a href="${gh(rel)}">${r
 function writeDoc(rel, slug, { title, description, before = '', after = '' } = {}) {
   const doc = parseDoc(rel);
   const unresolved = [];
-  const body = rewriteLinks(doc.body, path.posix.dirname(rel), unresolved);
+  const body = markAsciiArt(rewriteLinks(doc.body, path.posix.dirname(rel), unresolved));
   if (unresolved.length) {
     unresolvedTotal += unresolved.length;
     console.warn(`sync-study: ${rel}: left ${unresolved.length} unresolved link(s): ${unresolved.join(', ')}`);
