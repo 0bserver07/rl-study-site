@@ -2,6 +2,20 @@
 
 Versions of this site. The lectures, notes, and exercises have their own history in the study repo's [changelog](/changelog/). Each release here names the study repo commit it was built from.
 
+## 0.7.0 (2026-11-11)
+
+Built from the study repo at v1.1.0 (commit `febbd72`).
+
+- Dark pages. The site follows your system's light or dark setting. The "dark" or "light" link at the end of the header switches it, and so does Toggle dark mode in search. Your browser remembers the choice. At night the page is a warm near-black and the ink a warm light grey. The track colours are lightened so that text set in them reads at 4.5:1 or better.
+- The figures, code and diagrams change with the page. Figures redraw their shading in the night colours, code keeps its highlighting in warm tones, and the [diagrams](/diagrams/) are drawn again. Pictures and video thumbnails are left as they are, not inverted.
+- Text on the light pages meets contrast too (4.5:1, or 3:1 for large text). Before this, 840 bits of text across the 92 pages fell short, 771 of them in the grey used for dates and labels. The fixes are small:
+  - The grey is a shade darker.
+  - Track-coloured numbers have darker text tones.
+  - The planner's bars on [Start](/start/) are darker under their white numbers.
+  - The code block on the home page uses the same high-contrast colours as the lectures.
+  - The grids' +1 and −1 are darker.
+- Hovering a link to a lecture shows a preview that ends with the lecture's track and time. It used to end with a "Post · seedling" label left over from the site's theme.
+
 ## 0.6.0 (2026-11-10)
 
 Built from the study repo at v1.1.0 (commit `febbd72`).
