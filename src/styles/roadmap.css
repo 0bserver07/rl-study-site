@@ -469,3 +469,16 @@ body { transition: none; }
 :root.dark .study-status { background: var(--box); border-color: var(--rule); border-left-color: var(--c-rlvr); }
 
 :root.dark :focus-visible { outline-color: var(--blue); }
+
+/* Tailwind's dark: variant can't follow a pseudo-element: global.css's dark text selection,
+   scrollbar and link-preview arrow compile to an empty :is() and never apply, which left
+   selected text light-on-light-blue and a white arrow on the dark preview. They're set
+   here, with the theme's own dark values. */
+:root.dark ::selection { background: rgb(var(--color-accent-800)); }
+:root.dark ::-webkit-scrollbar-track { background: rgb(var(--color-primary-900)); }
+:root.dark ::-webkit-scrollbar-thumb { background: rgb(var(--color-primary-700)); }
+:root.dark ::-webkit-scrollbar-thumb:hover { background: rgb(var(--color-primary-600)); }
+:root.dark .link-preview-popup::before { background: rgb(var(--color-primary-900)); border-color: rgb(var(--color-primary-700)); }
+/* The preview's track-and-time line: the theme's grey was 2.92:1 on the white preview
+   (3.51:1 at night); --muted is 4.63:1 and 6.34:1. */
+#link-preview-container .link-preview-popup-meta { color: var(--muted); }

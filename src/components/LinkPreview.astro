@@ -3,7 +3,7 @@
  * LinkPreview Component
  *
  * Provides hover preview popups for internal links (Gwern-style)
- * Shows title, description, and growth status for linked posts
+ * Shows title, description, and (for a lecture) its track and time
  */
 
 import { getCollection } from 'astro:content';
@@ -12,14 +12,16 @@ import { getCollection } from 'astro:content';
 const posts = await getCollection('posts');
 // Study site: there are no projects, so no projects lookup (it logged a warning on every lecture page).
 
-const previewData: Record<string, { title: string; description?: string; type: string; growth?: string }> = {};
+// Study site: the line under a preview is the lecture's track and time, as in its header
+// (the theme's "📝 Post · seedling" meant nothing here). Other pages get no line.
+const previewData: Record<string, { title: string; description?: string; meta?: string }> = {};
 
 posts.forEach(post => {
+  const { lectureNumber, trackName, time } = post.data;
   previewData[`/posts/${post.id}/`] = {
     title: post.data.title,
     description: post.data.description,
-    type: 'post',
-    growth: post.data.growth,
+    meta: lectureNumber && trackName ? [trackName, time].filter(Boolean).join(' · ') : undefined,
   };
   // Also add without trailing slash
   previewData[`/posts/${post.id}`] = previewData[`/posts/${post.id}/`];
@@ -78,9 +80,8 @@ posts.forEach(post => {
         if (titleEl) titleEl.textContent = data.title;
         if (contentEl) contentEl.textContent = data.description || 'No description available.';
         if (metaEl) {
-          const typeLabel = data.type === 'post' ? '📝 Post' : '🚀 Project';
-          const growthLabel = data.growth ? ` · ${data.growth}` : '';
-          metaEl.textContent = typeLabel + growthLabel;
+          metaEl.textContent = data.meta || '';
+          (metaEl as HTMLElement).hidden = !data.meta;
         }
 
         // Position the popup
