@@ -26,7 +26,7 @@ const hasExtras = first || l.exercise || l.videos.length > 0 || l.status === 're
     <p class="extra">
       {l.exercise && <a href={l.exercise} title={l.exerciseName}>exercise</a>}
       {l.videos.length > 0 && <a href={`https://www.youtube.com/watch?v=${l.videos[0].id}`} title={l.videos[0].title}>video</a>}
-      {l.status === 'reviewed' && <span style="color: var(--c-rlvr)">reviewed</span>}
+      {l.status === 'reviewed' && <span style="color: var(--c-rlvr-text)">reviewed</span>}
       {first && <span class="bk-note">← start here</span>}
     </p>
   )}

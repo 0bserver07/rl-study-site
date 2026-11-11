@@ -38,7 +38,9 @@ function fromHsl(h: number, s: number, l: number) {
 
 function config() {
   const base = { startOnLoad: false, securityLevel: 'loose', fontFamily: 'inherit' };
-  if (!isDark()) return { ...base, theme: 'default' };
+  // Light: mermaid's default theme, except that two timeline sections (#8686ff, #c386ff)
+  // get ink instead of white labels (white on them is under 3.1:1).
+  if (!isDark()) return { ...base, theme: 'default', themeVariables: { cScaleLabel0: cssHex('--ink'), cScaleLabel3: cssHex('--ink') } };
   const c = (name: string) => cssHex(name);
   const box = c('--box'), paper = c('--paper'), deep = c('--paper-deep'), ink = c('--ink'), soft = c('--ink-soft'), muted = c('--muted'), rule = c('--rule');
   // Timeline sections: dark tints of the track pencils, with ink on them.

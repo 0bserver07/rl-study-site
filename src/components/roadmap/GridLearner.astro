@@ -59,9 +59,9 @@ const cols = LAYOUT[0].length, rows = LAYOUT.length;
   .grid-learner .cell { fill: var(--box); stroke: var(--rule); stroke-width: 1; transition: fill 0.25s; }
   .grid-learner .cell.wall { fill: var(--wall); stroke: var(--wall); }
   .grid-learner .lbl { font-family: var(--text); font-weight: 800; font-size: 20px; pointer-events: none; }
-  .grid-learner .lbl.goal { fill: var(--green-ink); }
-  .grid-learner .lbl.pit { fill: var(--red); }
-  .grid-learner .lbl.start { font-family: var(--sc); font-weight: 500; font-size: 13px; fill: var(--muted); }
+  .grid-learner .lbl.goal { fill: var(--goal-label); }
+  .grid-learner .lbl.pit { fill: var(--pit-label); }
+  .grid-learner .lbl.start { font-family: var(--sc); font-weight: 500; font-size: 13px; fill: var(--start-ink); }
   .grid-learner .arrow { fill: none; stroke: var(--ink-soft); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; opacity: 0.75; }
   .grid-learner .agent { fill: var(--red); stroke: var(--ring); stroke-width: 2; transition: cx 0.06s linear, cy 0.06s linear; }
   .gl-controls { display: flex; gap: 0.6rem; flex-wrap: wrap; margin: 0.7rem 0 0.4rem; }

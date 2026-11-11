@@ -27,7 +27,7 @@ const plannerData = { tracks, llm };
     {tracks.map((t, i) => (
       <div class="row" data-row={t.id}>
         <span>{i + 1}. {t.name}</span>
-        <div class="lane"><div class="seg" style={`background: var(--c-${t.id})`} data-seg></div></div>
+        <div class="lane"><div class="seg" style={`background: var(--c-${t.id}-text)`} data-seg></div></div>
       </div>
     ))}
   </div>

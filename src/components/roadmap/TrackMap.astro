@@ -70,10 +70,10 @@ const paths = study.trackEdges.flatMap((e, i) => {
       const [x, y] = POS[t.id];
       const hours = Math.round(t.hours);
       return (
-        <a class="node" href={`/tracks/${t.id}/`} style={`--c: var(--c-${t.id})`} aria-label={`${t.name}: ${t.lectures.length} lectures, about ${hours} hours`}>
+        <a class="node" href={`/tracks/${t.id}/`} style={`--c: var(--c-${t.id}); --ct: var(--c-${t.id}-text)`} aria-label={`${t.name}: ${t.lectures.length} lectures, about ${hours} hours`}>
           <rect class="box" x={x - W / 2} y={y - H / 2} width={W} height={H} rx="3" />
           <rect x={x - W / 2} y={y - H / 2} width="6" height={H} style="fill: var(--c)" />
-          <text x={x - W / 2 + 22} y={y - 4} font-size="19" font-weight="800" style="fill: var(--c)">{i + 1}</text>
+          <text x={x - W / 2 + 22} y={y - 4} font-size="19" font-weight="800" style="fill: var(--ct)">{i + 1}</text>
           <text x={x + 8} y={y - 4} text-anchor="middle" font-size={t.name.length > 14 ? 17 : 18.5} font-weight="700">{t.name}</text>
           <text class="sub" x={x + 8} y={y + 17} text-anchor="middle">{t.lectures.length} lectures, about {hours} hours</text>
         </a>

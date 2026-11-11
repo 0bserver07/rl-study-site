@@ -222,7 +222,7 @@
     --color-primary-200: 220 212 195;
     --color-primary-300: 196 186 168;
     --color-primary-400: 160 150 133;
-    --color-primary-500: 123 116 104;
+    --color-primary-500: 113 106 94; /* study site: the muted grey, 4.5:1 on the paper (was 123 116 104) */
     --color-primary-600: 98 92 82;
     --color-primary-700: 77 72 63;
     --color-primary-800: 58 54 47;
@@ -253,6 +253,10 @@
     --bg-secondary: 32 38 32; /* #202620 - elevated dark */
     --text-primary: 226 232 226; /* #e2e8e2 - soft white */
     --text-secondary: 176 192 176; /* #b0c0b0 - muted sage */
+    /* Study site: the greys the theme's palette and popups set as small text, light
+       enough for 4.5:1 on the dark panels (were 160 150 133 and 123 116 104). */
+    --color-primary-400: 172 163 146;
+    --color-primary-500: 168 158 140;
   }
 
   /* ============================================================================

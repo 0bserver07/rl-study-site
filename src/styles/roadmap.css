@@ -12,7 +12,7 @@
   --box: #fffdf8;
   --ink: #23201b;
   --ink-soft: #4d483f;
-  --muted: #7b7468;
+  --muted: #716a5e; /* was #7b7468: 4.36:1 on paper; now 5.04, and 4.54 on the PPO figure's flat band */
   --rule: #dcd4c3;
   --red: #b23a2a;
   --blue: #1f4e8c;
@@ -45,6 +45,14 @@
   --graph-edge: #4b5563;
   --graph-ring: #fff;
   --graph-label: #e5e7eb;
+  /* labels that sit on shaded squares, each just dark enough for its square: the +1 and
+     -1 on the grids' terminal squares (3:1, large), the lock's small +1 (4.5:1), the
+     start label (4.5:1 on its square at any value it reaches), the "hand-written" stamp */
+  --goal-label: #2d6b3c;
+  --pit-label: #943023;
+  --lock-goal-label: #265932;
+  --start-ink: var(--ink-soft);
+  --stamp-ok: #326c3e;
 
   --text: 'Alegreya', 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
   --sc: 'Alegreya SC', 'Alegreya', Georgia, serif;
@@ -59,6 +67,17 @@
   --c-agentic: #5b8c75;
   --c-offline: #6b7480;
   --c-systems: #ad4d77;
+  /* Track colours set as small text (numbers on the track map and the landscape map, the
+     loop figure's labels, the planner's bar labels): darkened just enough for 4.5:1 on
+     paper, box and hover. Fills (swatches, bars elsewhere, edges) keep --c-*. */
+  --c-foundations-text: #a06324;
+  --c-classical-text: var(--c-classical);
+  --c-rlhf-text: #8f6b10;
+  --c-rlaif-text: #82669b;
+  --c-rlvr-text: #3a7f49;
+  --c-agentic-text: #507a66;
+  --c-offline-text: #6a727e;
+  --c-systems-text: var(--c-systems);
 }
 
 /* The same book at night: a warm near-black page, light warm ink, and the same
@@ -112,6 +131,11 @@
   --graph-edge: #5d564b;
   --graph-ring: #1c1a16;
   --graph-label: #e6ddcc;
+  --goal-label: var(--green-ink);
+  --pit-label: var(--red);
+  --lock-goal-label: var(--green-ink);
+  --start-ink: var(--muted);
+  --stamp-ok: var(--c-rlvr);
 
   --c-foundations: #d39257;
   --c-classical: #88a6d4;
@@ -121,6 +145,14 @@
   --c-agentic: #83b39c;
   --c-offline: #a0a8b3;
   --c-systems: #d4839f;
+  --c-foundations-text: var(--c-foundations);
+  --c-classical-text: var(--c-classical);
+  --c-rlhf-text: var(--c-rlhf);
+  --c-rlaif-text: var(--c-rlaif);
+  --c-rlvr-text: var(--c-rlvr);
+  --c-agentic-text: var(--c-agentic);
+  --c-offline-text: var(--c-offline);
+  --c-systems-text: var(--c-systems);
 }
 
 html { background: var(--paper); }
@@ -284,7 +316,7 @@ button, input, select, textarea { font-family: inherit; }
 .bk-head .bk-dek { font-size: 1.2rem; }
 .bk-status { margin: 1rem 0 0.6rem; line-height: 1.5; color: var(--ink-soft); font-size: 1.02rem; }
 .bk-stamp { display: inline-block; font-family: var(--sc); font-weight: 700; letter-spacing: 0.05em; color: var(--red); border: 2px solid var(--red); border-radius: 4px; padding: 0 0.45rem 0.05rem; margin-right: 0.5rem; transform: rotate(-2deg); opacity: 0.88; }
-.bk-stamp.ok { color: var(--c-rlvr); border-color: var(--c-rlvr); }
+.bk-stamp.ok { color: var(--stamp-ok); border-color: var(--c-rlvr); }
 .bk-status a { color: var(--blue); }
 
 .bk-article { display: grid; grid-template-columns: minmax(0, 42rem) 14rem; gap: 3.5rem; justify-content: center; padding: 1rem 0 2rem; }
@@ -337,7 +369,7 @@ button, input, select, textarea { font-family: inherit; }
 /* The theme's prose styles assume dark code blocks and give code near-white text (text-primary-100). On paper that made
    every block without highlighting (no language) invisible. Highlighted tokens keep their own inline colours. */
 /* Comments: github-light-high-contrast's grey is 4.35:1 on paper; this one is 4.88:1 and still reads as muted. */
-:root:not(.dark) .prose-mycelium pre span[style*="#66707B" i] { color: var(--code-comment) !important; }
+:root:not(.dark) .astro-code span[style*="#66707B" i] { color: var(--code-comment) !important; }
 /* Box-drawing diagrams (wrapped by the sync script) need tight lines so the strokes join. */
 .prose-mycelium .ascii-art pre, .prose-mycelium .ascii-art pre code { line-height: 1.2 !important; }
 .prose-mycelium table { font-size: 1rem; }
@@ -464,6 +496,9 @@ button, input, select, textarea { font-family: inherit; }
 
 /* The theme switches at once; the theme's body fade would leave the header a step behind. */
 body { transition: none; }
+
+/* The theme's link previews: their small type line in the muted grey, which reads on both pages. */
+.link-preview-popup .link-preview-popup-meta { color: var(--muted); }
 
 /* The status note on hand-written pages, as in daylight: box, rule, a green edge. */
 :root.dark .study-status { background: var(--box); border-color: var(--rule); border-left-color: var(--c-rlvr); }

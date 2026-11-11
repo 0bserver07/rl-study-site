@@ -72,9 +72,9 @@ const cols = LAYOUT[0].length, rows = LAYOUT.length;
   .ac-grid .cell { fill: var(--box); stroke: var(--rule); stroke-width: 1; transition: fill 0.25s; }
   .ac-grid .cell.wall { fill: var(--wall); stroke: var(--wall); }
   .ac-grid .lbl { font-family: var(--text); font-weight: 800; font-size: 20px; pointer-events: none; }
-  .ac-grid .lbl.goal { fill: var(--green-ink); }
-  .ac-grid .lbl.pit { fill: var(--red); }
-  .ac-grid .lbl.start { font-family: var(--sc); font-weight: 500; font-size: 10px; fill: var(--muted); }
+  .ac-grid .lbl.goal { fill: var(--goal-label); }
+  .ac-grid .lbl.pit { fill: var(--pit-label); }
+  .ac-grid .lbl.start { font-family: var(--sc); font-weight: 500; font-size: 10px; fill: var(--start-ink); }
   /* the trail's paths are made in the script, so they need :global to get these styles */
   .ac-grid .trail :global(path) { fill: none; stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; opacity: 0.5; }
   .ac-grid .trail :global(path.better) { stroke: var(--green); }

@@ -33,7 +33,7 @@ const titleOf = (num: string) => lectureByNum.get(num)?.title ?? `Lecture ${num}
       const track = trackById.get(f.track);
       const count = track?.lectures.length ?? 0;
       return (
-        <article class="lm-card" style={`--lm-color: ${track ? `var(--c-${track.id})` : 'var(--muted)'}`}>
+        <article class="lm-card" style={track ? `--lm-color: var(--c-${track.id}); --lm-text: var(--c-${track.id}-text)` : '--lm-color: var(--muted); --lm-text: var(--muted)'}>
           <h3 class="lm-name"><a href={`/tracks/${f.track}/`}>{f.name}</a></h3>
           <dl class="lm-answers">
             <div><dt>Reward</dt><dd>{f.reward}</dd></div>
@@ -91,15 +91,15 @@ const titleOf = (num: string) => lectureByNum.get(num)?.title ?? `Lecture ${num}
   .lm-items a { color: var(--ink); text-decoration: none; border-bottom: 1px dotted var(--muted); }
   .lm-items a:hover { color: var(--blue); border-bottom-color: var(--blue); }
   .lm-sep { color: var(--muted); }
-  .lm-num { font-family: var(--sc); font-weight: 700; font-size: 0.82rem; color: var(--lm-color, var(--red)); margin-left: 0.2rem; vertical-align: 0.25em; }
+  .lm-num { font-family: var(--sc); font-weight: 700; font-size: 0.82rem; color: var(--lm-text, var(--red)); margin-left: 0.2rem; vertical-align: 0.25em; }
   .lm-takeaway { font-style: italic; color: var(--ink-soft); margin: auto 0 0.45rem; padding-top: 0.5rem; border-top: 1px dotted var(--rule); font-size: 1rem; line-height: 1.4; }
   .lm-track-link { font-family: var(--sc); font-weight: 500; font-size: 1rem; color: var(--blue); text-decoration: none; }
   .lm-track-link:hover { text-decoration: underline; }
   .lm-bridge { display: block; margin: 1rem 0 0; padding: 0.65rem 1rem; border: 1px dashed var(--muted); border-radius: 3px; color: var(--ink); text-decoration: none; font-style: italic; }
   .lm-bridge:hover { border-style: solid; background: var(--box); }
-  .lm-bridge .lm-num { --lm-color: var(--c-rlaif); font-style: normal; }
+  .lm-bridge .lm-num { --lm-text: var(--c-rlaif-text); font-style: normal; }
   .lm-systems { margin: 0.7rem 0 0; color: var(--ink-soft); }
   .lm-systems a { color: var(--ink); text-decoration: none; border-bottom: 1px dotted var(--muted); }
-  .lm-systems .lm-num { --lm-color: var(--c-systems); }
-  .lm-mdp .lm-num { --lm-color: var(--c-foundations); }
+  .lm-systems .lm-num { --lm-text: var(--c-systems-text); }
+  .lm-mdp .lm-num { --lm-text: var(--c-foundations-text); }
 </style>
