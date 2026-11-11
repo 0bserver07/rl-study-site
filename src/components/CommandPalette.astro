@@ -117,6 +117,7 @@ const searchData = JSON.stringify(searchIndex);
 <script type="application/json" id="command-palette-data" set:html={searchData}></script>
 <script>
   import Fuse from 'fuse.js';
+  import { toggleTheme } from '../scripts/theme';
   let fuse;
   const searchIndex = JSON.parse(document.getElementById('command-palette-data')?.textContent || '[]');
 
@@ -166,11 +167,11 @@ const searchData = JSON.stringify(searchIndex);
       }
     });
 
-    // Handle quick action clicks
+    // Handle quick action clicks. Study site: the same switch as the header's toggle
+    // (src/scripts/theme.ts), so the choice is saved and figures redraw.
     document.querySelectorAll('[data-action="toggle-theme"]').forEach((btn) => {
       btn.addEventListener('click', () => {
-        const isDark = document.documentElement.classList.toggle('dark');
-        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        toggleTheme();
         closePalette();
       });
     });

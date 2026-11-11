@@ -22,8 +22,8 @@ const nodes = posts.map(post => ({
   title: post.data.title.replace(/^Lecture (\d\d): /, '$1 '),
   growth: post.data.growth || 'seedling',
   tags: post.data.tags || [],
-  // Study site: colour each lecture by its track
-  color: studyTracks.find((t) => t.id === post.data.track)?.color,
+  // Study site: colour each lecture by its track (a CSS variable, so it follows the theme)
+  color: studyTracks.some((t) => t.id === post.data.track) ? `var(--c-${post.data.track})` : undefined,
 }));
 
 // Extract links from content
@@ -131,7 +131,7 @@ const graphData = { nodes, links };
       <!-- Study site: legend by track instead of growth status -->
       {studyTracks.map((t) => (
         <div class="flex items-center gap-2">
-          <span class="w-3 h-3 rounded-full" style={`background:${t.color}`}></span>
+          <span class="w-3 h-3 rounded-full" style={`background: var(--c-${t.id})`}></span>
           <span class="text-primary-300">{t.name}</span>
         </div>
       ))}
@@ -219,15 +219,9 @@ const graphData = { nodes, links };
 
       svg.call(zoom);
 
-      // Color based on growth status
-      function getColor(growth) {
-        switch(growth) {
-          case 'seedling': return '#4ade80';
-          case 'budding': return '#fbbf24';
-          case 'evergreen': return '#10b981';
-          default: return '#6b7280';
-        }
-      }
+      // Study site: colours are CSS variables (roadmap.css), set as styles rather than
+      // attributes so var() works and the graph follows the theme. Every lecture has a
+      // track colour; --muted is only a fallback.
 
       // Create force simulation
       simulation = d3.forceSimulation(graphData.nodes)
@@ -241,7 +235,7 @@ const graphData = { nodes, links };
         .selectAll('line')
         .data(graphData.links)
         .join('line')
-        .attr('stroke', '#4b5563')
+        .style('stroke', 'var(--graph-edge)')
         .attr('stroke-opacity', 0.6)
         .attr('stroke-width', 1.5);
 
@@ -259,8 +253,8 @@ const graphData = { nodes, links };
       // Node circles
       node.append('circle')
         .attr('r', 8)
-        .attr('fill', d => d.color || getColor(d.growth))
-        .attr('stroke', '#fff')
+        .style('fill', d => d.color || 'var(--muted)')
+        .style('stroke', 'var(--graph-ring)')
         .attr('stroke-width', 2);
 
       // Node labels
@@ -268,7 +262,7 @@ const graphData = { nodes, links };
         .text(d => d.title)
         .attr('x', 12)
         .attr('y', 4)
-        .attr('fill', '#e5e7eb')
+        .style('fill', 'var(--graph-label)')
         .attr('font-size', '12px')
         .attr('font-family', 'system-ui, sans-serif');
 

@@ -34,7 +34,7 @@ const exercises = study.exercises.filter((e) => t.lectures.includes(e.num));
   <Header slot="header" />
 
   <div class="bk">
-    <section class="bk-page bk-chapter" style={`--c: ${t.color}; padding-top: 3rem`}>
+    <section class="bk-page bk-chapter" style={`--c: var(--c-${t.id}); padding-top: 3rem`}>
       <div class="bk-chapter-head">
         <span class="bk-bignum" aria-hidden="true">{index + 1}</span>
         <div>
@@ -46,7 +46,7 @@ const exercises = study.exercises.filter((e) => t.lectures.includes(e.num));
         </div>
       </div>
 
-      <ChalkLoop track={t.id} color={t.color} label="Figure." />
+      <ChalkLoop track={t.id} label="Figure." />
       <p>{t.blurb}</p>
       <p>
         Start with <a href={`/posts/${items[0].slug}/`}>lecture {items[0].num}</a>.
@@ -54,7 +54,7 @@ const exercises = study.exercises.filter((e) => t.lectures.includes(e.num));
       </p>
 
       <ol class="bk-lectures">
-        {items.map((l, i) => <LectureCard lecture={l} color={t.color} first={i === 0} />)}
+        {items.map((l, i) => <LectureCard lecture={l} color={`var(--c-${t.id})`} first={i === 0} />)}
       </ol>
 
       {exercises.length > 0 && (

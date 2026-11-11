@@ -70,35 +70,36 @@ const cols = LAYOUT[0].length, rows = LAYOUT.length;
   .ac-grid { margin: 0; }
   .ac-grid svg[data-board] { width: 100%; height: auto; display: block; border: 1.2px solid var(--ink); background: var(--box); }
   .ac-grid .cell { fill: var(--box); stroke: var(--rule); stroke-width: 1; transition: fill 0.25s; }
-  .ac-grid .cell.wall { fill: #3b362e; stroke: #3b362e; }
+  .ac-grid .cell.wall { fill: var(--wall); stroke: var(--wall); }
   .ac-grid .lbl { font-family: var(--text); font-weight: 800; font-size: 20px; pointer-events: none; }
-  .ac-grid .lbl.goal { fill: #2f6f3e; }
+  .ac-grid .lbl.goal { fill: var(--green-ink); }
   .ac-grid .lbl.pit { fill: var(--red); }
   .ac-grid .lbl.start { font-family: var(--sc); font-weight: 500; font-size: 10px; fill: var(--muted); }
   /* the trail's paths are made in the script, so they need :global to get these styles */
   .ac-grid .trail :global(path) { fill: none; stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; opacity: 0.5; }
-  .ac-grid .trail :global(path.better) { stroke: rgb(63 138 79); }
+  .ac-grid .trail :global(path.better) { stroke: var(--green); }
   .ac-grid .trail :global(path.worse) { stroke: var(--red); }
   .ac-grid .trail :global(path.even) { stroke: var(--muted); }
   .ac-grid .trail :global(path.live) { stroke: var(--muted); opacity: 0.35; }
   .ac-grid .arrow { fill: none; stroke: var(--ink); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
-  .ac-grid .agent { fill: var(--ink); stroke: #fff; stroke-width: 2; transition: cx 0.07s linear, cy 0.07s linear; pointer-events: none; }
+  .ac-grid .agent { fill: var(--ink); stroke: var(--ring); stroke-width: 2; transition: cx 0.07s linear, cy 0.07s linear; pointer-events: none; }
   .ac-controls { display: flex; gap: 0.6rem; flex-wrap: wrap; margin: 0.7rem 0 0.4rem; }
   .ac-grid button { font-family: var(--sc); font-weight: 500; font-size: 1rem; letter-spacing: 0.02em; background: var(--box); color: var(--ink); border: 1.2px solid var(--ink); border-radius: 3px; padding: 0.15rem 0.7rem 0.25rem; cursor: pointer; }
-  .ac-grid button:hover { background: #fff6df; }
+  .ac-grid button:hover { background: var(--hover); }
   .ac-grid button[aria-pressed=true] { background: var(--ink); color: var(--paper); }
   .ac-stats { font-size: 0.95rem; color: var(--ink-soft); }
   .ac-stats p { margin: 0 !important; }
   .ac-nums { display: flex; flex-wrap: wrap; gap: 0.2rem 1.1rem; }
   .ac-stats b { color: var(--ink); font-variant-numeric: lining-nums tabular-nums; }
   .ac-line { margin-top: 0.25rem !important; color: var(--ink); font-variant-numeric: lining-nums; min-height: 3em; }
-  .ac-line :global(.better) { color: #2f6f3e; font-weight: 700; }
+  .ac-line :global(.better) { color: var(--green-ink); font-weight: 700; }
   .ac-line :global(.worse) { color: var(--red); font-weight: 700; }
   @media (max-width: 480px) { .ac-grid button { font-size: 0.92rem; padding: 0.1rem 0.55rem 0.2rem; } .ac-line { min-height: 4.5em; } }
   @media (prefers-reduced-motion: reduce) { .ac-grid .agent, .ac-grid .cell { transition: none; } }
 </style>
 
 <script>
+  import { valueShader, onThemeChange } from '../../scripts/theme';
   type Kind = '.' | 'S' | 'G' | 'P' | 'W';
   // One step of an episode: where the agent was, what it did, where it landed, the
   // reward, and the policy it acted with.
@@ -189,14 +190,10 @@ const cols = LAYOUT[0].length, rows = LAYOUT.length;
       lastG0 = G[0]; lastSteps = steps; lastAdv = A;
     }
 
-    function shade(v: number) {
-      // paper -> green for value, paper -> red for cost (same colours as GridLearner)
-      const t = Math.max(-1, Math.min(1, v));
-      const [r0, g0, b0] = [255, 253, 248];
-      const [r1, g1, b1] = t >= 0 ? [63, 138, 79] : [178, 58, 42];
-      const m = Math.abs(t) * 0.55;
-      return `rgb(${Math.round(r0 + (r1 - r0) * m)} ${Math.round(g0 + (g1 - g0) * m)} ${Math.round(b0 + (b1 - b0) * m)})`;
-    }
+    // The board colour -> green for value, -> red for cost (valueShader in
+    // src/scripts/theme.ts). The colours are CSS variables, so it is made again when
+    // the theme changes.
+    let shade = valueShader(root);
     // One most likely move: an arrow across the middle. Several tied at the top: a
     // short arrow out from the middle for each (as in ValueIteration).
     function arrowPath(x: number, y: number, a: number, fromCenter: boolean) {
@@ -311,6 +308,7 @@ const cols = LAYOUT[0].length, rows = LAYOUT.length;
 
     // Pause when the figure scrolls out of view, so it doesn't run unseen.
     new IntersectionObserver((entries) => { if (!entries[0].isIntersecting) stopRun(); }).observe(root);
+    onThemeChange(() => { shade = valueShader(root); draw(); });
     reset();
   }
 

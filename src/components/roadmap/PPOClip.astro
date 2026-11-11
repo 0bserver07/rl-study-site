@@ -87,15 +87,15 @@ const xOf = (r: number) => X0 + (r / R_MAX) * (X1 - X0);
   .ppo-clip .frame { fill: none; stroke: var(--ink-soft); stroke-width: 1; }
   .ppo-clip .grid { stroke: var(--rule); stroke-width: 0.8; }
   .ppo-clip .zero { stroke: var(--ink-soft); stroke-width: 1; }
-  .ppo-clip .flat { fill: #efece6; }
-  .ppo-clip .flat-lbl { font-family: var(--sc); font-weight: 500; font-size: 13px; fill: var(--muted); letter-spacing: 0.02em; font-variant-numeric: lining-nums; paint-order: stroke; stroke: #efece6; stroke-width: 5px; stroke-linejoin: round; }
+  .ppo-clip .flat { fill: var(--flat); }
+  .ppo-clip .flat-lbl { font-family: var(--sc); font-weight: 500; font-size: 13px; fill: var(--muted); letter-spacing: 0.02em; font-variant-numeric: lining-nums; paint-order: stroke; stroke: var(--flat); stroke-width: 5px; stroke-linejoin: round; }
   .ppo-clip .bound { stroke: var(--ink-soft); stroke-width: 1; stroke-dasharray: 2 3; }
   .ppo-clip .tick { font-family: var(--text); font-size: 12.5px; fill: var(--ink-soft); font-variant-numeric: lining-nums tabular-nums; }
   .ppo-clip .bound-lbl { fill: var(--ink); }
   .ppo-clip .axis { font-family: var(--text); font-style: italic; font-size: 13px; fill: var(--ink); }
   .ppo-clip .axis .sub { font-size: 0.72em; }
   .ppo-clip .unclipped { fill: none; stroke: var(--ink-soft); stroke-width: 1.6; stroke-dasharray: 5 4; }
-  .ppo-clip .curve { fill: none; stroke: rgb(63 138 79); stroke-width: 2.8; stroke-linejoin: round; stroke-linecap: round; }
+  .ppo-clip .curve { fill: none; stroke: var(--green); stroke-width: 2.8; stroke-linejoin: round; stroke-linecap: round; }
   .ppo-clip[data-sign=neg] .curve { stroke: var(--red); }
   .ppo-clip .start { fill: var(--box); stroke: var(--ink); stroke-width: 1.5; }
   .ppo-clip .start-lbl { font-family: var(--sc); font-weight: 500; font-size: 12px; fill: var(--muted); paint-order: stroke; stroke: var(--box); stroke-width: 5px; stroke-linejoin: round; }
@@ -107,15 +107,15 @@ const xOf = (r: number) => X0 + (r / R_MAX) * (X1 - X0);
   .pc-legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
   .pc-legend .sw { width: 1.75rem; height: 0.65rem; flex: none; }
   .pc-legend .sw-sq { width: 1rem; }
-  .pc-legend .sw-curve { stroke: rgb(63 138 79); stroke-width: 2.8; }
+  .pc-legend .sw-curve { stroke: var(--green); stroke-width: 2.8; }
   .ppo-clip[data-sign=neg] .pc-legend .sw-curve { stroke: var(--red); }
   .pc-legend .sw-dash { stroke: var(--ink-soft); stroke-width: 1.6; stroke-dasharray: 5 4; }
-  .pc-legend .sw-flat { fill: #efece6; stroke: var(--rule); stroke-width: 1; }
+  .pc-legend .sw-flat { fill: var(--flat); stroke: var(--rule); stroke-width: 1; }
   .pc-options { display: flex; gap: 0.5rem 1.2rem; flex-wrap: wrap; align-items: center; margin: 0.7rem 0 0.3rem; }
   .pc-opt { display: inline-flex; gap: 0.35rem; align-items: center; }
   .pc-opt-label { font-family: var(--text); font-style: italic; font-size: 1.1rem; color: var(--ink); margin-right: 0.15rem; }
   .ppo-clip button { font-family: var(--text); font-weight: 500; font-size: 1rem; font-variant-numeric: lining-nums tabular-nums; background: var(--box); color: var(--ink); border: 1.2px solid var(--ink); border-radius: 3px; padding: 0.05rem 0.45rem 0.15rem; cursor: pointer; }
-  .ppo-clip button:hover { background: #fff6df; }
+  .ppo-clip button:hover { background: var(--hover); }
   .ppo-clip button[aria-pressed=true] { background: var(--ink); color: var(--paper); }
   .pc-slider { display: flex; align-items: center; gap: 0.5rem; margin: 0.3rem 0 0.5rem; }
   .pc-slider input { flex: 1; min-width: 0; accent-color: var(--ink); }

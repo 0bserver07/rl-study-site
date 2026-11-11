@@ -84,15 +84,15 @@ const geom = { x0: X0, x1: X1, lim: LIM, row: ROW, top: TOP };
   .rm-bt .name { font-family: var(--text); font-size: 13.5px; fill: var(--ink); }
   .rm-bt .val { font-family: var(--text); font-size: 13.5px; fill: var(--ink); font-variant-numeric: lining-nums tabular-nums; }
   .rm-bt .val.zero { fill: var(--muted); }
-  .rm-bt .bar { fill: rgb(63 138 79 / 0.78); transition: x 0.3s ease, width 0.3s ease; }
-  .rm-bt .bar.neg { fill: rgb(178 58 42 / 0.72); }
+  .rm-bt .bar { fill: var(--bar-up); transition: x 0.3s ease, width 0.3s ease; }
+  .rm-bt .bar.neg { fill: var(--bar-down); }
   .rm-bt .tick { stroke: var(--ink); stroke-width: 2.6; }
   .rm-key { display: flex; flex-wrap: wrap; align-items: center; gap: 0.1rem 1rem; font-size: 0.92rem; color: var(--ink-soft); font-variant-numeric: lining-nums; margin: 0.45rem 0 0 !important; }
   .rm-key span { display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; }
   .rm-key svg { height: 0.85rem; width: auto; display: inline-block; }
   .rm-controls { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; margin: 0.7rem 0 0.4rem; }
   .rm-bt button { font-family: var(--sc); font-weight: 500; font-size: 1rem; letter-spacing: 0.02em; background: var(--box); color: var(--ink); border: 1.2px solid var(--ink); border-radius: 3px; padding: 0.15rem 0.7rem 0.25rem; cursor: pointer; }
-  .rm-bt button:hover { background: #fff6df; }
+  .rm-bt button:hover { background: var(--hover); }
   .rm-stats { display: flex; flex-wrap: wrap; gap: 0.2rem 1.1rem; font-size: 0.95rem; color: var(--ink-soft); }
   .rm-stats b { color: var(--ink); font-variant-numeric: lining-nums tabular-nums; }
   @media (max-width: 480px) {

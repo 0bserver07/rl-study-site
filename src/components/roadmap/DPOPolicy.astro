@@ -102,21 +102,21 @@ const fmtR = (v: number) => (v < 0 ? '−' : '+') + Math.abs(v).toFixed(1);
   .dpo-policy .name { font-family: var(--text); font-weight: 700; font-size: 15px; fill: var(--ink); }
   .dpo-policy .ref { fill: var(--box); stroke: var(--ink-soft); stroke-width: 1.2; stroke-dasharray: 3 2; }
   .dpo-policy .pol { fill: var(--ink-soft); }
-  .dpo-policy .pol.up { fill: rgb(63 138 79); }
+  .dpo-policy .pol.up { fill: var(--green); }
   .dpo-policy .pol.down { fill: var(--red); }
   .dp-legend { display: flex; flex-wrap: wrap; gap: 0.15rem 1.1rem; font-size: 0.92rem; color: var(--ink-soft); margin: 0.45rem 0 0 !important; }
   .dp-legend .dp-key { display: inline-flex; align-items: center; gap: 0.35rem; }
   .dp-legend .sw { width: 0.9rem; height: 0.8rem; flex: none; }
   .dp-legend .sw-2 { width: 1.65rem; }
   .dp-legend .sw-ref { fill: var(--box); stroke: var(--ink-soft); stroke-width: 1.2; stroke-dasharray: 3 2; }
-  .dp-legend .sw-up { fill: rgb(63 138 79); }
+  .dp-legend .sw-up { fill: var(--green); }
   .dp-legend .sw-down { fill: var(--red); }
   .dp-controls { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; margin: 0.7rem 0 0.4rem; }
   .dp-opt { display: inline-flex; gap: 0.35rem; align-items: center; margin-left: 0.6rem; }
   .dp-opt-label { font-family: var(--text); font-style: italic; font-size: 1.1rem; color: var(--ink); margin-right: 0.15rem; }
   .dpo-policy button { font-family: var(--sc); font-weight: 500; font-size: 1rem; letter-spacing: 0.02em; background: var(--box); color: var(--ink); border: 1.2px solid var(--ink); border-radius: 3px; padding: 0.15rem 0.7rem 0.25rem; cursor: pointer; }
   .dpo-policy .dp-opt button { padding: 0.05rem 0.45rem 0.15rem; font-family: var(--text); font-variant-numeric: lining-nums tabular-nums; }
-  .dpo-policy button:hover { background: #fff6df; }
+  .dpo-policy button:hover { background: var(--hover); }
   .dpo-policy button[aria-pressed=true] { background: var(--ink); color: var(--paper); }
   .dp-stats { display: flex; flex-wrap: wrap; gap: 0.2rem 1.1rem; font-size: 0.95rem; color: var(--ink-soft); font-variant-numeric: lining-nums; }
   .dp-stats b { color: var(--ink); font-variant-numeric: lining-nums tabular-nums; }
@@ -126,7 +126,7 @@ const fmtR = (v: number) => (v < 0 ? '−' : '+') + Math.abs(v).toFixed(1);
   .dp-table th:first-child { text-align: left; padding-left: 0; }
   .dp-table td:last-child, .dp-table th:last-child { padding-right: 0; }
   .dp-table tbody th { font-weight: 700; }
-  .dp-table td.up { color: rgb(47 111 62); }
+  .dp-table td.up { color: var(--green-ink); }
   .dp-table td.down { color: var(--red); }
   @media (max-width: 480px) {
     .dpo-policy button { font-size: 0.92rem; padding: 0.1rem 0.55rem 0.2rem; }

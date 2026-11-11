@@ -45,15 +45,15 @@ const NAMES = ['A', 'B', 'C'];
   .bandit { margin: 0; }
   .bd-machines { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; }
   .bd-machine { background: var(--box); border: 1.2px solid var(--ink); border-radius: 3px; padding: 0.7rem 0.75rem 0.6rem; text-align: center; }
-  .bd-machine.best { border-color: #2f6f3e; box-shadow: inset 0 0 0 1px #2f6f3e; }
+  .bd-machine.best { border-color: var(--green-ink); box-shadow: inset 0 0 0 1px var(--green-ink); }
   .bd-name { font-family: var(--sc); font-weight: 700; letter-spacing: 0.03em; margin: 0 0 0.45rem !important; }
   .bd-tally { font-size: 0.92rem; color: var(--ink-soft); margin: 0.45rem 0 0 !important; font-variant-numeric: lining-nums tabular-nums; }
   .bd-true { font-family: var(--hand); color: var(--red); font-size: 1.05rem; margin: 0.25rem 0 0 !important; }
   .bandit button { font-family: var(--sc); font-weight: 500; font-size: 1rem; letter-spacing: 0.02em; background: var(--box); color: var(--ink); border: 1.2px solid var(--ink); border-radius: 3px; padding: 0.15rem 0.8rem 0.25rem; cursor: pointer; }
-  .bandit button:hover:not(:disabled) { background: #fff6df; }
+  .bandit button:hover:not(:disabled) { background: var(--hover); }
   .bandit button:disabled { opacity: 0.4; cursor: default; }
-  .bandit button.flash-win { background: #dcebdc; }
-  .bandit button.flash-lose { background: #f1dcd6; }
+  .bandit button.flash-win { background: var(--win); }
+  .bandit button.flash-lose { background: var(--loss); }
   .bd-status { margin: 0.8rem 0 0 !important; font-variant-numeric: lining-nums; }
   .bd-after { margin-top: 0.6rem; }
   .bd-after p { margin: 0 0 0.6rem !important; }

@@ -33,7 +33,7 @@ const titleOf = (num: string) => lectureByNum.get(num)?.title ?? `Lecture ${num}
       const track = trackById.get(f.track);
       const count = track?.lectures.length ?? 0;
       return (
-        <article class="lm-card" style={`--lm-color: ${track?.color ?? '#888'}`}>
+        <article class="lm-card" style={`--lm-color: ${track ? `var(--c-${track.id})` : 'var(--muted)'}`}>
           <h3 class="lm-name"><a href={`/tracks/${f.track}/`}>{f.name}</a></h3>
           <dl class="lm-answers">
             <div><dt>Reward</dt><dd>{f.reward}</dd></div>
@@ -73,7 +73,7 @@ const titleOf = (num: string) => lectureByNum.get(num)?.title ?? `Lecture ${num}
 
 <style>
   .lm-mdp { display: inline-flex; align-items: baseline; gap: 0.6rem; padding: 0.35rem 0.9rem; border: 1.2px solid var(--ink); border-radius: 3px; background: var(--box); color: var(--ink); text-decoration: none; }
-  .lm-mdp:hover { background: #fff6df; }
+  .lm-mdp:hover { background: var(--hover); }
   .lm-mdp-name { font-weight: 800; }
   .lm-mdp-symbols { font-style: italic; }
   .lm-intro { max-width: 40rem; margin: 0.9rem auto 0; color: var(--ink-soft); font-style: italic; line-height: 1.5; }

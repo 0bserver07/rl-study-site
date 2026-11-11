@@ -88,23 +88,23 @@ const SX0 = 44, SX1 = 412, ST = 8, SB = 64; // sparkline plot area
   .pg-bandit .axis { stroke: var(--ink-soft); stroke-width: 1.2; }
   .pg-bandit .full { stroke: var(--rule); stroke-width: 1; stroke-dasharray: 3 4; }
   .pg-bandit .full-label { font-family: var(--text); font-size: 13px; fill: var(--muted); font-variant-numeric: lining-nums; }
-  .pg-bandit .bar { fill: #c9bfab; stroke: var(--ink-soft); stroke-width: 1; transition: y 0.15s ease-out, height 0.15s ease-out; }
+  .pg-bandit .bar { fill: var(--bar); stroke: var(--ink-soft); stroke-width: 1; transition: y 0.15s ease-out, height 0.15s ease-out; }
   .pg-bandit .bar.pulled { stroke: var(--ink); stroke-width: 2.4; }
   .pg-bandit .was { stroke: var(--ink); stroke-width: 1.3; stroke-dasharray: 3 3; visibility: hidden; }
   .pg-bandit .was.on { visibility: visible; }
   .pg-bandit .pct { font-family: var(--text); font-weight: 700; font-size: 17px; fill: var(--ink); font-variant-numeric: lining-nums tabular-nums; paint-order: stroke; stroke: var(--box); stroke-width: 5px; stroke-linejoin: round; }
-  .pg-bandit .move.up { fill: rgb(63 138 79); }
+  .pg-bandit .move.up { fill: var(--green); }
   .pg-bandit .move.down { fill: var(--red); }
   .pg-bandit .name { font-family: var(--sc); font-weight: 500; font-size: 16px; fill: var(--ink); }
   .pg-bandit .paid { font-family: var(--text); font-size: 15px; font-variant-numeric: lining-nums; }
-  .pg-bandit .paid.win { fill: #2f6f3e; font-weight: 700; }
+  .pg-bandit .paid.win { fill: var(--green-ink); font-weight: 700; }
   .pg-bandit .paid.loss { fill: var(--ink-soft); }
   .pg-bandit .rate { font-family: var(--hand); font-size: 15px; fill: var(--red); visibility: hidden; }
   .pg-bandit.show-rates .rate { visibility: visible; }
   .pg-controls, .pg-options { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; margin: 0.7rem 0 0.4rem; }
   .pg-options { margin-top: 0.2rem; gap: 0.4rem 1.2rem; }
   .pg-bandit button { font-family: var(--sc); font-weight: 500; font-size: 1rem; letter-spacing: 0.02em; background: var(--box); color: var(--ink); border: 1.2px solid var(--ink); border-radius: 3px; padding: 0.15rem 0.7rem 0.25rem; cursor: pointer; }
-  .pg-bandit button:hover { background: #fff6df; }
+  .pg-bandit button:hover { background: var(--hover); }
   .pg-bandit button[aria-pressed=true] { background: var(--ink); color: var(--paper); }
   .pg-check { font-family: var(--sc); font-weight: 500; font-size: 1rem; color: var(--ink); display: inline-flex; gap: 0.35rem; align-items: center; cursor: pointer; }
   .pg-check input { accent-color: var(--ink); width: 1rem; height: 1rem; }
@@ -118,7 +118,7 @@ const SX0 = 44, SX1 = 412, ST = 8, SB = 64; // sparkline plot area
   .pg-spark .frame { stroke: var(--rule); stroke-width: 1; }
   .pg-spark .third { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 4; }
   .pg-spark .tick { font-family: var(--text); font-size: 13px; fill: var(--muted); font-variant-numeric: lining-nums; }
-  .pg-spark polyline { fill: none; stroke: rgb(63 138 79); stroke-width: 1.8; stroke-linejoin: round; }
+  .pg-spark polyline { fill: none; stroke: var(--green); stroke-width: 1.8; stroke-linejoin: round; }
   @media (max-width: 480px) { .pg-bandit button { font-size: 0.92rem; padding: 0.1rem 0.55rem 0.2rem; } .pg-last { min-height: 4.5em; } }
   @media (prefers-reduced-motion: reduce) { .pg-bandit .bar { transition: none; } }
 </style>

@@ -63,7 +63,13 @@ export default defineConfig({
       [rehypeAutolinkHeadings, { behavior: 'wrap' }],
     ],
     shikiConfig: {
-      theme: 'github-light-high-contrast', // study site: code on paper; plain github-light's orange, red, green and grey fall under 4.5:1 on the paper colour
+      // Study site: code on paper; plain github-light's orange, red, green and grey fall
+      // under 4.5:1 on the paper colour. Dark pages: github-dark-high-contrast, the same
+      // family, so tokens break at the same places and light code renders exactly as
+      // before. Light colours stay inline; the dark ones go in --shiki-dark, which
+      // roadmap.css applies under :root.dark and maps to warm pencil tones.
+      themes: { light: 'github-light-high-contrast', dark: 'github-dark-high-contrast' },
+      defaultColor: 'light',
       wrap: true,
     },
   },

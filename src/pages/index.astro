@@ -25,7 +25,8 @@ import { siteConfig, gardenerUrl } from '../config';
 
 const lectures = study.lectures;
 const byNum = new Map(lectures.map((l) => [l.num, l]));
-const colorOf = (num: string) => study.tracks.find((t) => t.id === byNum.get(num)?.track)?.color ?? 'var(--ink)';
+// Track colours are CSS variables (--c-<track> in roadmap.css), so they follow the theme.
+const colorOf = (num: string) => { const track = byNum.get(num)?.track; return track ? `var(--c-${track})` : 'var(--ink)'; };
 const totalHours = Math.round(study.totalHours);
 const totalTests = study.exercises.reduce((s, e) => s + (e.tests ?? 0), 0);
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -143,7 +144,7 @@ const everything = [
           <div>
             <h3>Build</h3>
             <p>Open <a href={ex03.url}>exercise 03</a>. You fill in three TODOs in <code>starter.py</code>, and this is one of them:</p>
-            {qUpdate && <Code code={qUpdate} lang="python" theme="github-light" />}
+            {qUpdate && <Code code={qUpdate} lang="python" themes={{ light: 'github-light', dark: 'github-dark-high-contrast' }} defaultColor="light" />}
             <p>
               Then run <code>pytest exercises/03-q-learning/</code>. The {say(ex03.tests)} tests pass when the code is right.
               Stuck? The hints go from a nudge to nearly the answer, and you take them one at a time.
@@ -202,7 +203,7 @@ const everything = [
       </figure>
       <ol class="bk-tracklist">
         {study.tracks.map((t, i) => (
-          <li style={`--c: ${t.color}`}>
+          <li style={`--c: var(--c-${t.id})`}>
             <span class="no" aria-hidden="true">{i + 1}</span>
             <div>
               <a href={`/tracks/${t.id}/`}>{t.name}</a>

@@ -61,6 +61,17 @@ const ogImage = shareImage
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Study site: dark or light, decided before anything is painted and before any
+         stylesheet: a choice saved by the header's toggle wins, otherwise the OS setting.
+         src/scripts/theme.ts handles every change after this. -->
+    <script is:inline>
+      (function () {
+        var saved = null;
+        try { saved = localStorage.getItem('theme'); } catch (e) {}
+        var dark = saved === 'dark' || (saved !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.classList.toggle('dark', dark);
+      })();
+    </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
 
@@ -101,15 +112,6 @@ const ogImage = shareImage
     <meta property="twitter:description" content={description} />
     {ogImage && <meta property="twitter:image" content={ogImage} />}
 
-    <!-- Dark mode initialization (prevent flash) -->
-    <script is:inline>
-      (function() {
-        // Study site: the roadmap design has its own dark sections, so the page
-        // itself is always light.
-        document.documentElement.classList.remove('dark');
-      })();
-    </script>
-
     <!-- Slot for page-specific head content (JSON-LD, etc.) -->
     <slot name="head" />
   </head>
@@ -130,20 +132,20 @@ const ogImage = shareImage
 
     <!-- Theme toggle script -->
     <script>
-      // Theme toggle functionality
-      function initThemeToggle() {
-        const toggleButtons = document.querySelectorAll('[data-theme-toggle]');
+      // Study site: every [data-theme-toggle] button (the header's "dark"/"light") and the
+      // command palette's quick action go through src/scripts/theme.ts, which saves the
+      // choice and fires `themechange` on window for figures that redraw.
+      import { toggleTheme, watchTheme } from '../scripts/theme';
 
-        toggleButtons.forEach((button) => {
-          button.addEventListener('click', () => {
-            const isDark = document.documentElement.classList.toggle('dark');
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-            // Dispatch event for components that need to react to theme changes
-            window.dispatchEvent(new CustomEvent('themechange', { detail: { dark: isDark } }));
-          });
+      function initThemeToggle() {
+        document.querySelectorAll<HTMLElement>('[data-theme-toggle]').forEach((button) => {
+          if (button.dataset.themeReady) return;
+          button.dataset.themeReady = '1';
+          button.addEventListener('click', toggleTheme);
         });
       }
 
+      watchTheme();
       // Initialize on load and after page transitions
       document.addEventListener('DOMContentLoaded', initThemeToggle);
       document.addEventListener('astro:page-load', initThemeToggle);

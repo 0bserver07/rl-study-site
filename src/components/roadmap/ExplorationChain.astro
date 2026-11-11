@@ -59,7 +59,7 @@ const AGENTS = [
     <button type="button" data-fast>Train 50 episodes</button>
     <button type="button" data-reset>Reset</button>
   </div>
-  <p class="ex-note" aria-live="polite">episodes <b data-episodes>0</b> <span class="ex-key">shading: how often a square has been visited (darker is more, on a log scale); caret: the furthest square; ×: a wrong move ended the episode there</span></p>
+  <p class="ex-note" aria-live="polite">episodes <b data-episodes>0</b> <span class="ex-key">shading: how often a square has been visited (<span class="when-light">darker</span><span class="when-dark">lighter</span> is more, on a log scale); caret: the furthest square; ×: a wrong move ended the episode there</span></p>
 
   {caption && <figcaption set:html={caption} />}
 </figure>
@@ -71,18 +71,18 @@ const AGENTS = [
   .ex-math { font-family: var(--text); font-style: italic; letter-spacing: 0; font-variant-numeric: lining-nums; }
   .ex-agent svg { width: 100%; height: auto; display: block; border: 1.2px solid var(--ink); background: var(--box); }
   .ex-agent .sq { fill: var(--box); stroke: var(--rule); stroke-width: 1; transition: fill 0.2s; }
-  .ex-agent .sq.goal { fill: rgb(170 202 172); stroke: #2f6f3e; }
-  .ex-agent .plus { font-family: var(--text); font-weight: 800; font-size: 11px; fill: #2f6f3e; pointer-events: none; }
+  .ex-agent .sq.goal { fill: var(--goal); stroke: var(--green-ink); }
+  .ex-agent .plus { font-family: var(--text); font-weight: 800; font-size: 11px; fill: var(--green-ink); pointer-events: none; }
   .ex-agent .end-label { font-family: var(--sc); font-weight: 500; font-size: 11px; fill: var(--muted); }
   .ex-agent .far { fill: var(--ink); }
   .ex-agent .wrong { fill: none; stroke: var(--red); stroke-width: 2.2; stroke-linecap: round; pointer-events: none; }
-  .ex-agent .dot { fill: var(--ink); stroke: #fff; stroke-width: 1.6; pointer-events: none; }
+  .ex-agent .dot { fill: var(--ink); stroke: var(--ring); stroke-width: 1.6; pointer-events: none; }
   .ex-stats { display: flex; flex-wrap: wrap; gap: 0.1rem 1.1rem; font-size: 0.95rem; color: var(--ink-soft); margin: 0.2rem 0 0 !important; }
   .ex-stats b, .ex-note b { color: var(--ink); font-variant-numeric: lining-nums tabular-nums; }
   .ex-stats [data-last] { font-variant-numeric: lining-nums; }
   .ex-controls { display: flex; gap: 0.6rem; flex-wrap: wrap; margin: 0.8rem 0 0.4rem; }
   .ex-chain button { font-family: var(--sc); font-weight: 500; font-size: 1rem; letter-spacing: 0.02em; background: var(--box); color: var(--ink); border: 1.2px solid var(--ink); border-radius: 3px; padding: 0.15rem 0.7rem 0.25rem; cursor: pointer; }
-  .ex-chain button:hover { background: #fff6df; }
+  .ex-chain button:hover { background: var(--hover); }
   .ex-chain button[aria-pressed=true] { background: var(--ink); color: var(--paper); }
   .ex-note { font-size: 0.95rem; color: var(--ink-soft); margin: 0 !important; }
   .ex-key { display: block; font-size: 0.88rem; color: var(--muted); }
@@ -91,6 +91,7 @@ const AGENTS = [
 </style>
 
 <script>
+  import { cssColor, onThemeChange } from '../../scripts/theme';
   // The lock: 16 squares, the +1 on the last. Exercise 20's agent settings.
   const NS = 16, GOAL = NS - 1;
   const ALPHA = 0.5, GAMMA = 0.99, EPS = 0.1;
@@ -164,6 +165,9 @@ const AGENTS = [
     const cx = (i: number) => G.X0 + G.STEP * i + G.CELL / 2;
     // only touch the live regions when the text changes, so screen readers aren't flooded
     const setText = (el: Element | null, text: string) => { if (el && el.textContent !== text) el.textContent = text; };
+    // Visits are drawn in ink (--ink, read now and again when the theme changes): dark on
+    // light pages, light on dark ones.
+    let ink = cssColor('--ink', root);
     function draw() {
       // shared log scale, so the two strips can be compared square by square
       const top = Math.max(1, ...agents.flatMap((ag) => ag.visits.slice(0, NS - 1)));
@@ -172,7 +176,7 @@ const AGENTS = [
         v.querySelectorAll<SVGRectElement>('[data-sq]').forEach((rect) => {
           const i = Number(rect.dataset.sq);
           const n = ag.visits[i];
-          if (i < NS - 1) rect.style.fill = n === 0 ? '' : `rgb(35 32 27 / ${(0.08 + 0.62 * Math.log(1 + n) / Math.log(1 + top)).toFixed(3)})`;
+          if (i < NS - 1) rect.style.fill = n === 0 ? '' : `rgb(${ink.join(' ')} / ${(0.08 + 0.62 * Math.log(1 + n) / Math.log(1 + top)).toFixed(3)})`;
           const [ql, qr] = ag.Q[i];
           const times = `${n} time${n === 1 ? '' : 's'}`;
           (rect.querySelector('title') as SVGTitleElement).textContent = i === NS - 1
@@ -216,6 +220,7 @@ const AGENTS = [
 
     // Pause when the figure scrolls out of view, so it doesn't run unseen.
     new IntersectionObserver((entries) => { if (!entries[0].isIntersecting) stopRun(); }).observe(root);
+    onThemeChange(() => { ink = cssColor('--ink', root); draw(); });
     reset();
   }
 

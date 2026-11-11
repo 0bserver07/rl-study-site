@@ -57,16 +57,16 @@ const cols = LAYOUT[0].length, rows = LAYOUT.length;
   .grid-learner { margin: 0; }
   .grid-learner svg[data-board] { width: 100%; height: auto; display: block; border: 1.2px solid var(--ink); background: var(--box); }
   .grid-learner .cell { fill: var(--box); stroke: var(--rule); stroke-width: 1; transition: fill 0.25s; }
-  .grid-learner .cell.wall { fill: #3b362e; stroke: #3b362e; }
+  .grid-learner .cell.wall { fill: var(--wall); stroke: var(--wall); }
   .grid-learner .lbl { font-family: var(--text); font-weight: 800; font-size: 20px; pointer-events: none; }
-  .grid-learner .lbl.goal { fill: #2f6f3e; }
+  .grid-learner .lbl.goal { fill: var(--green-ink); }
   .grid-learner .lbl.pit { fill: var(--red); }
   .grid-learner .lbl.start { font-family: var(--sc); font-weight: 500; font-size: 13px; fill: var(--muted); }
   .grid-learner .arrow { fill: none; stroke: var(--ink-soft); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; opacity: 0.75; }
-  .grid-learner .agent { fill: var(--red); stroke: #fff; stroke-width: 2; transition: cx 0.06s linear, cy 0.06s linear; }
+  .grid-learner .agent { fill: var(--red); stroke: var(--ring); stroke-width: 2; transition: cx 0.06s linear, cy 0.06s linear; }
   .gl-controls { display: flex; gap: 0.6rem; flex-wrap: wrap; margin: 0.7rem 0 0.4rem; }
   .gl-controls button { font-family: var(--sc); font-weight: 500; font-size: 1rem; letter-spacing: 0.02em; background: var(--box); color: var(--ink); border: 1.2px solid var(--ink); border-radius: 3px; padding: 0.15rem 0.7rem 0.25rem; cursor: pointer; }
-  .gl-controls button:hover { background: #fff6df; }
+  .gl-controls button:hover { background: var(--hover); }
   .gl-controls button[data-run][aria-pressed=true] { background: var(--ink); color: var(--paper); }
   .gl-stats { display: flex; flex-wrap: wrap; gap: 0.2rem 1.1rem; font-size: 0.95rem; color: var(--ink-soft); }
   .gl-stats b { color: var(--ink); font-variant-numeric: lining-nums tabular-nums; }
@@ -76,6 +76,7 @@ const cols = LAYOUT[0].length, rows = LAYOUT.length;
 </style>
 
 <script>
+  import { valueShader, onThemeChange } from '../../scripts/theme';
   type Kind = '.' | 'S' | 'G' | 'P' | 'W';
 
   function initGridLearner(root: HTMLElement) {
@@ -131,14 +132,10 @@ const cols = LAYOUT[0].length, rows = LAYOUT.length;
       return false;
     }
 
-    function shade(v: number) {
-      // paper -> green for value, paper -> red for cost
-      const t = Math.max(-1, Math.min(1, v));
-      const [r0, g0, b0] = [255, 253, 248];
-      const [r1, g1, b1] = t >= 0 ? [63, 138, 79] : [178, 58, 42];
-      const m = Math.abs(t) * 0.55;
-      return `rgb(${Math.round(r0 + (r1 - r0) * m)} ${Math.round(g0 + (g1 - g0) * m)} ${Math.round(b0 + (b1 - b0) * m)})`;
-    }
+    // The board colour -> green for value, -> red for cost (valueShader in
+    // src/scripts/theme.ts). The colours are CSS variables, so it is made again when
+    // the theme changes.
+    let shade = valueShader(root);
     function arrowPath(x: number, y: number, a: number) {
       const cx = x * C + C / 2, cy = y * C + C / 2, L = 13, H = 6;
       const [dx, dy] = MOVES[a];
@@ -190,6 +187,7 @@ const cols = LAYOUT[0].length, rows = LAYOUT.length;
 
     // Pause when the figure scrolls out of view, so it doesn't run unseen.
     new IntersectionObserver((entries) => { if (!entries[0].isIntersecting) stopRun(); }).observe(root);
+    onThemeChange(() => { shade = valueShader(root); draw(); });
     reset();
   }
 

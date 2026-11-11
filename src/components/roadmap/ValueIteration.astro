@@ -69,9 +69,9 @@ const DEFAULT_GAMMA = 0.95;
   .value-iter { margin: 0; }
   .value-iter svg[data-board] { width: 100%; height: auto; display: block; border: 1.2px solid var(--ink); background: var(--box); }
   .value-iter .cell { fill: var(--box); stroke: var(--rule); stroke-width: 1; transition: fill 0.25s; }
-  .value-iter .cell.wall { fill: #3b362e; stroke: #3b362e; }
+  .value-iter .cell.wall { fill: var(--wall); stroke: var(--wall); }
   .value-iter .lbl { font-family: var(--text); font-weight: 800; font-size: 20px; pointer-events: none; }
-  .value-iter .lbl.goal { fill: #2f6f3e; }
+  .value-iter .lbl.goal { fill: var(--green-ink); }
   .value-iter .lbl.pit { fill: var(--red); }
   .value-iter .lbl.start { font-family: var(--sc); font-weight: 500; font-size: 10px; fill: var(--muted); }
   .value-iter .val { font-family: var(--text); font-size: 12.5px; fill: var(--ink-soft); font-variant-numeric: lining-nums tabular-nums; pointer-events: none; }
@@ -83,7 +83,7 @@ const DEFAULT_GAMMA = 0.95;
   .vi-opt-label { font-family: var(--text); font-style: italic; font-size: 1.1rem; color: var(--ink); margin-right: 0.15rem; }
   .value-iter button { font-family: var(--sc); font-weight: 500; font-size: 1rem; letter-spacing: 0.02em; background: var(--box); color: var(--ink); border: 1.2px solid var(--ink); border-radius: 3px; padding: 0.15rem 0.7rem 0.25rem; cursor: pointer; }
   .value-iter .vi-opt button { padding: 0.05rem 0.45rem 0.15rem; font-family: var(--text); font-variant-numeric: lining-nums tabular-nums; }
-  .value-iter button:hover { background: #fff6df; }
+  .value-iter button:hover { background: var(--hover); }
   .value-iter button[aria-pressed=true] { background: var(--ink); color: var(--paper); }
   .vi-slip { font-family: var(--sc); font-weight: 500; font-size: 1rem; color: var(--ink); display: inline-flex; gap: 0.35rem; align-items: center; cursor: pointer; }
   .vi-slip input { accent-color: var(--ink); width: 1rem; height: 1rem; }
@@ -93,6 +93,7 @@ const DEFAULT_GAMMA = 0.95;
 </style>
 
 <script>
+  import { valueShader, onThemeChange } from '../../scripts/theme';
   type Kind = '.' | 'S' | 'G' | 'P' | 'W';
 
   function initValueIteration(root: HTMLElement) {
@@ -151,14 +152,10 @@ const DEFAULT_GAMMA = 0.95;
     }
     const done = () => delta !== null && (delta < STOP_BELOW || k >= MAX_SWEEPS);
 
-    function shade(v: number) {
-      // paper -> green for value, paper -> red for cost (same colours as GridLearner)
-      const t = Math.max(-1, Math.min(1, v));
-      const [r0, g0, b0] = [255, 253, 248];
-      const [r1, g1, b1] = t >= 0 ? [63, 138, 79] : [178, 58, 42];
-      const m = Math.abs(t) * 0.55;
-      return `rgb(${Math.round(r0 + (r1 - r0) * m)} ${Math.round(g0 + (g1 - g0) * m)} ${Math.round(b0 + (b1 - b0) * m)})`;
-    }
+    // The board colour -> green for value, -> red for cost (valueShader in
+    // src/scripts/theme.ts). The colours are CSS variables, so it is made again when
+    // the theme changes.
+    let shade = valueShader(root);
     // One best move: an arrow across the middle. Several tied moves: one short arrow
     // out from the middle for each, so a tie reads as "any of these".
     function arrowPath(x: number, y: number, a: number, fromCenter: boolean) {
@@ -219,6 +216,7 @@ const DEFAULT_GAMMA = 0.95;
     ($('[data-slip]') as HTMLInputElement).addEventListener('change', (e) => { stopRun(); slip = (e.target as HTMLInputElement).checked; reset(); });
 
     new IntersectionObserver((entries) => { if (!entries[0].isIntersecting) stopRun(); }).observe(root);
+    onThemeChange(() => { shade = valueShader(root); draw(); });
     reset();
   }
 

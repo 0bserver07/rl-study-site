@@ -17,6 +17,34 @@
   --red: #b23a2a;
   --blue: #1f4e8c;
   --highlight: rgb(255 213 79 / 0.55);
+  --highlight-start: rgb(255 213 79 / 0.25);
+  --highlight-end: rgb(255 213 79 / 0.2);
+  --link-line: rgb(31 78 140 / 0.45);
+  --hover: #fff6df;
+  --on-track: #fff;
+  --code-comment: #5f6873;
+
+  /* figures (src/components/roadmap/): good and bad, walls, bars, the shading of a
+     square's value (from --box toward --shade-good or --shade-bad, mixed in script) */
+  --green: #3f8a4f;
+  --green-ink: #2f6f3e;
+  --wall: #3b362e;
+  --ring: #fff;
+  --win: #dcebdc;
+  --loss: #f1dcd6;
+  --goal: rgb(170 202 172);
+  --flat: #efece6;
+  --bar: #c9bfab;
+  --bar-faint: rgb(123 116 104 / 0.55);
+  --bar-green: rgb(63 138 79 / 0.85);
+  --bar-up: rgb(63 138 79 / 0.78);
+  --bar-down: rgb(178 58 42 / 0.72);
+  --shade-good: #3f8a4f;
+  --shade-bad: #b23a2a;
+  --note: #fff6f3;
+  --graph-edge: #4b5563;
+  --graph-ring: #fff;
+  --graph-label: #e5e7eb;
 
   --text: 'Alegreya', 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
   --sc: 'Alegreya SC', 'Alegreya', Georgia, serif;
@@ -31,6 +59,68 @@
   --c-agentic: #5b8c75;
   --c-offline: #6b7480;
   --c-systems: #ad4d77;
+}
+
+/* The same book at night: a warm near-black page, light warm ink, and the same
+   pencils, lightened until they read on it (4.5:1 or more for anything set as text).
+   The `dark` class on <html> comes from BaseLayout's head script and
+   src/scripts/theme.ts. */
+:root.dark {
+  color-scheme: dark;
+  --paper: #1c1a16;
+  --paper-deep: #29251f;
+  --box: #23201b;
+  --ink: #e6ddcc;
+  --ink-soft: #c6bca9;
+  --muted: #aaa18f;
+  --rule: #3d372e;
+  --red: #e07b62;
+  --blue: #91b2e3;
+  --highlight: rgb(196 150 42 / 0.3);
+  --highlight-start: rgb(196 150 42 / 0.14);
+  --highlight-end: rgb(196 150 42 / 0.11);
+  --link-line: rgb(145 178 227 / 0.45);
+  --hover: #332d23;
+  --on-track: #1c1a16;
+  --plate: #f3eee2;
+  /* code: github-dark-high-contrast's colours, mapped to warm pencils (rules at the end) */
+  --code-comment: #aaa18f;
+  --code-keyword: #ec8b76;
+  --code-operator: #f0a593;
+  --code-constant: #deaa66;
+  --code-number: #93b4e3;
+  --code-function: #c6a9de;
+  --code-string: #b5cfe9;
+  --code-escape: #8acb98;
+
+  --green: #6fb07e;
+  --green-ink: #8acb98;
+  --wall: #71685a;
+  --ring: #1c1a16;
+  --win: #24402b;
+  --loss: #4a2a22;
+  --goal: #2f4a35;
+  --flat: #2e2a23;
+  --bar: #6b6253;
+  --bar-faint: rgb(170 161 143 / 0.42);
+  --bar-green: rgb(111 176 126 / 0.8);
+  --bar-up: rgb(111 176 126 / 0.7);
+  --bar-down: rgb(224 123 98 / 0.62);
+  --shade-good: #3a7647;
+  --shade-bad: #a64530;
+  --note: #2a1f1b;
+  --graph-edge: #5d564b;
+  --graph-ring: #1c1a16;
+  --graph-label: #e6ddcc;
+
+  --c-foundations: #d39257;
+  --c-classical: #88a6d4;
+  --c-rlhf: #c9a54c;
+  --c-rlaif: #ae98cb;
+  --c-rlvr: #73b282;
+  --c-agentic: #83b39c;
+  --c-offline: #a0a8b3;
+  --c-systems: #d4839f;
 }
 
 html { background: var(--paper); }
@@ -61,10 +151,10 @@ button, input, select, textarea { font-family: inherit; }
 .bk h2 .bk-secnum { color: var(--red); margin-right: 0.45rem; font-variant-numeric: lining-nums; }
 .bk h3 { font-family: var(--text); font-weight: 700; font-size: 1.35rem; line-height: 1.25; margin: 0 0 0.4rem; }
 .bk p { margin: 0 0 1rem; }
-.bk a { color: var(--blue); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; text-decoration-color: rgb(31 78 140 / 0.45); }
+.bk a { color: var(--blue); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; text-decoration-color: var(--link-line); }
 .bk a:hover { text-decoration-color: currentColor; }
 .bk code { font-size: 0.82em; background: var(--paper-deep); padding: 0.08em 0.3em; border-radius: 3px; }
-.bk-hl, .prose-mycelium mark { color: inherit; background: linear-gradient(100deg, rgb(255 213 79 / 0.25) 0, var(--highlight) 0.25em, var(--highlight) calc(100% - 0.25em), rgb(255 213 79 / 0.2) 100%); background-size: 100% 0.6em; background-repeat: no-repeat; background-position: 0 90%; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.bk-hl, .prose-mycelium mark { color: inherit; background: linear-gradient(100deg, var(--highlight-start) 0, var(--highlight) 0.25em, var(--highlight) calc(100% - 0.25em), var(--highlight-end) 100%); background-size: 100% 0.6em; background-repeat: no-repeat; background-position: 0 90%; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
 .bk-note { font-family: var(--hand); font-weight: 400; color: var(--red); font-size: 1.12rem; line-height: 1.2; display: inline-block; transform: rotate(-2.5deg); }
 .bk-meta { font-style: italic; color: var(--ink-soft); }
 .bk-swatch { display: inline-block; width: 0.7em; height: 0.7em; border-radius: 2px; vertical-align: 0.02em; margin-right: 0.3em; }
@@ -122,7 +212,7 @@ button, input, select, textarea { font-family: inherit; }
 .bk-gantt { display: grid; gap: 0.35rem; }
 .bk-gantt .row { display: grid; grid-template-columns: 10.5rem 1fr; gap: 0.75rem; align-items: center; font-size: 0.98rem; }
 .bk-gantt .lane { position: relative; height: 0.95rem; border-bottom: 1px solid var(--rule); }
-.bk-gantt .seg { position: absolute; top: 0.1rem; bottom: 0.15rem; border-radius: 2px; color: #fff; font-family: var(--text); font-size: 0.72rem; font-weight: 700; display: flex; align-items: center; justify-content: flex-end; padding-right: 0.3rem; min-width: 1.7rem; transition: left 0.25s, width 0.25s; font-variant-numeric: lining-nums; }
+.bk-gantt .seg { position: absolute; top: 0.1rem; bottom: 0.15rem; border-radius: 2px; color: var(--on-track); font-family: var(--text); font-size: 0.72rem; font-weight: 700; display: flex; align-items: center; justify-content: flex-end; padding-right: 0.3rem; min-width: 1.7rem; transition: left 0.25s, width 0.25s; font-variant-numeric: lining-nums; }
 .bk-gantt .row.off { opacity: 0.3; }
 .bk-planner-note { margin: 1rem 0 0 !important; }
 .bk-planner-note b { color: var(--red); }
@@ -132,7 +222,7 @@ button, input, select, textarea { font-family: inherit; }
 .bk-map-scroll { overflow-x: auto; }
 .bk-map { min-width: 720px; width: 100%; height: auto; display: block; }
 .bk-map .node rect.box { fill: var(--box); stroke: var(--ink); stroke-width: 1.1; }
-.bk-map .node:hover rect.box, .bk-map .node:focus rect.box { fill: #fff6df; stroke: var(--c); stroke-width: 2; }
+.bk-map .node:hover rect.box, .bk-map .node:focus rect.box { fill: var(--hover); stroke: var(--c); stroke-width: 2; }
 .bk-map a, .bk-map text { text-decoration: none !important; }
 .bk-map .node text { font-family: var(--text); fill: var(--ink); }
 .bk-map .node .sub { font-style: italic; fill: var(--muted); font-size: 13.5px; }
@@ -236,7 +326,7 @@ button, input, select, textarea { font-family: inherit; }
 .prose-mycelium h3 { font-weight: 700 !important; font-size: 1.35rem !important; line-height: 1.25 !important; }
 .prose-mycelium h4 { font-weight: 700 !important; font-size: 1.15rem !important; }
 .prose-mycelium h2 a, .prose-mycelium h3 a, .prose-mycelium h4 a { color: inherit !important; text-decoration: none !important; }
-.prose-mycelium a { color: var(--blue); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; text-decoration-color: rgb(31 78 140 / 0.45); }
+.prose-mycelium a { color: var(--blue); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; text-decoration-color: var(--link-line); }
 .prose-mycelium a:hover { text-decoration-color: currentColor; }
 .prose-mycelium strong { color: var(--ink); font-weight: 700; }
 .prose-mycelium blockquote { border-left: 3px solid var(--rule) !important; background: none; padding: 0 0 0 1rem !important; font-style: italic !important; color: var(--ink-soft) !important; }
@@ -247,7 +337,7 @@ button, input, select, textarea { font-family: inherit; }
 /* The theme's prose styles assume dark code blocks and give code near-white text (text-primary-100). On paper that made
    every block without highlighting (no language) invisible. Highlighted tokens keep their own inline colours. */
 /* Comments: github-light-high-contrast's grey is 4.35:1 on paper; this one is 4.88:1 and still reads as muted. */
-.prose-mycelium pre span[style*="#66707B" i] { color: #5f6873 !important; }
+:root:not(.dark) .prose-mycelium pre span[style*="#66707B" i] { color: var(--code-comment) !important; }
 /* Box-drawing diagrams (wrapped by the sync script) need tight lines so the strokes join. */
 .prose-mycelium .ascii-art pre, .prose-mycelium .ascii-art pre code { line-height: 1.2 !important; }
 .prose-mycelium table { font-size: 1rem; }
@@ -342,3 +432,40 @@ button, input, select, textarea { font-family: inherit; }
 .bk-signup button:hover { background: var(--ink); color: var(--paper); }
 .bk-signup .fine { margin: 0.45rem 0 0; font-size: 0.9rem; font-style: italic; color: var(--muted); }
 .bk-signup .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+
+/* ---- light and dark ----------------------------------------------------- */
+/* Words that depend on the theme: the header's toggle names the theme it switches
+   to, and a caption says "darker" on paper and "brighter" at night. */
+:root:not(.dark) .when-dark, :root.dark .when-light { display: none; }
+
+/* Code in the dark: Shiki writes both themes on every token (astro.config.mjs,
+   `themes`), the light colour inline and the dark one (github-dark-high-contrast)
+   in --shiki-dark. Its colours are mapped to warm ones here, each 5.9:1 or more on
+   the dark code background. #272B33 is its text for ignored lines in a diff, meant for
+   a background that code spans don't get here, so it becomes ink. Plain text without
+   a language keeps --ink. Box-drawing diagrams are code too. */
+:root.dark .astro-code span[style*="--shiki-dark:"] { color: var(--shiki-dark) !important; }
+:root.dark .astro-code span:is([style*="--shiki-dark:#F0F3F6" i], [style*="--shiki-dark:#FFFFFF" i], [style*="--shiki-dark:#272B33" i]) { color: var(--ink) !important; }
+:root.dark .astro-code span[style*="--shiki-dark:#BDC4CC" i] { color: var(--code-comment) !important; }
+:root.dark .astro-code span[style*="--shiki-dark:#FF9492" i] { color: var(--code-keyword) !important; }
+:root.dark .astro-code span[style*="--shiki-dark:#FFB1AF" i] { color: var(--code-operator) !important; }
+:root.dark .astro-code span[style*="--shiki-dark:#FFB757" i] { color: var(--code-constant) !important; }
+:root.dark .astro-code span[style*="--shiki-dark:#91CBFF" i] { color: var(--code-number) !important; }
+:root.dark .astro-code span[style*="--shiki-dark:#DBB7FF" i] { color: var(--code-function) !important; }
+:root.dark .astro-code span[style*="--shiki-dark:#ADDCFF" i] { color: var(--code-string) !important; }
+:root.dark .astro-code span[style*="--shiki-dark:#72F088" i] { color: var(--code-escape) !important; }
+
+/* Pictures stay as drawn (never inverted), on a paper plate so a transparent
+   one keeps its light ground, and a little dimmer than daylight. */
+:root.dark .prose-mycelium img { background: var(--plate); filter: brightness(0.9); }
+
+/* Tailwind's prose-invert would draw table rules, list numbers and bullets in cool greys. */
+:root.dark .prose-mycelium { --tw-prose-th-borders: var(--rule); --tw-prose-td-borders: var(--rule); --tw-prose-counters: var(--muted); --tw-prose-bullets: var(--rule); --tw-prose-captions: var(--ink-soft); }
+
+/* The theme switches at once; the theme's body fade would leave the header a step behind. */
+body { transition: none; }
+
+/* The status note on hand-written pages, as in daylight: box, rule, a green edge. */
+:root.dark .study-status { background: var(--box); border-color: var(--rule); border-left-color: var(--c-rlvr); }
+
+:root.dark :focus-visible { outline-color: var(--blue); }
