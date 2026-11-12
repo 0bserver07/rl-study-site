@@ -2,6 +2,13 @@
 
 Versions of this site. The lectures, notes, and exercises have their own history in the study repo's [changelog](/changelog/). Each release here names the study repo commit it was built from.
 
+## 0.7.1 (2026-11-14)
+
+Built from the study repo at v1.1.0 (commit `febbd72`).
+
+- The [diagrams](/diagrams/) are drawn at their own size. All 13 were squeezed into 300px, so their labels showed at a tenth of their size in the widest one. Each is now as wide as it needs to be, up to the column. One wider than the column shrinks to fit, but not below three quarters of its size; past that it scrolls sideways in its own box.
+- [Why I keep coming back to reinforcement learning](/why/) ends with a new section, Learning it by playing with it: what to try in the lecture 01 and GRPO figures, and how the essay's slot machines come back in the policy gradient lecture. The same section is in the copy on yad.codes.
+
 ## 0.7.0 (2026-11-11)
 
 Built from the study repo at v1.1.0 (commit `febbd72`).
