@@ -105,6 +105,13 @@ export async function renderMermaid() {
         n.removeAttribute('data-processed');
       }
       await mermaid.run({ nodes });
+      // A diagram wider than its column shrinks to fit, but not below three quarters of its own
+      // width (mermaid's 16px labels stay at 12px or more). Past that it scrolls sideways in its box.
+      nodes.forEach((n) => {
+        const svg = n.querySelector<SVGSVGElement>('svg');
+        const natural = svg ? parseFloat(svg.style.maxWidth) : NaN;
+        if (svg && natural) svg.style.minWidth = `${Math.round(natural * 0.75)}px`;
+      });
       if (isDark()) nodes.forEach((n) => { const svg = n.querySelector('svg'); if (svg) darken(svg); });
     }).catch((e) => console.warn('mermaid:', e));
     return drawing;

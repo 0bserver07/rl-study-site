@@ -372,6 +372,11 @@ button, input, select, textarea { font-family: inherit; }
 :root:not(.dark) .astro-code span[style*="#66707B" i] { color: var(--code-comment) !important; }
 /* Box-drawing diagrams (wrapped by the sync script) need tight lines so the strokes join. */
 .prose-mycelium .ascii-art pre, .prose-mycelium .ascii-art pre code { line-height: 1.2 !important; }
+/* Mermaid diagrams at their own width, centred, never wider than the column. The box mermaid
+   draws into was a shrink-to-fit flex item with no width of its own, so the SVG's width="100%"
+   had nothing to resolve against and every diagram fell back to 300px. */
+.mermaid-container > .mermaid { width: 100%; }
+.mermaid-container > .mermaid svg { margin-inline: auto; }
 .prose-mycelium table { font-size: 1rem; }
 /* On phones, a wide table scrolls inside its own box instead of widening the page,
    and a long path, URL or identifier breaks rather than pushing past the edge. */
