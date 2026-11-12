@@ -77,6 +77,14 @@ Sutton wrote in 2019 that the methods that win in the long run are the general o
 
 But if you build things with machine learning, sooner or later you'll want to optimize something you can't write a loss for. Whether the program passed its tests. Whether the robot stayed upright. That's reinforcement learning, whatever you end up calling it.
 
-If you want to go through it properly, [the 34 lectures here](/curriculum/) go from MDPs to training language models, and the [exercises](/exercises/) run from value iteration on a gridworld to GRPO, with tests that only pass when your code is right.
+## Learning it by playing with it
+
+Both figures above run in your browser. That's how I'd learn RL now: watch an agent start out knowing nothing and get better one step at a time.
+
+It gets more fun when you change something and see what breaks. Every lecture here with an exercise has a figure like these. On [lecture 01's grid](/posts/01-mdps-bellman/), turn on the slippery floor and set γ to 0.99: some squares next to a pit start walking into a wall. It wastes a step, but no slip from there lands in the pit. In [the GRPO figure](/posts/15-rl-verifiable-rewards/), sample groups of four answers and count how often the policy doesn't move at all. When every answer in a group is wrong, or every one is right, there's nothing to learn from it, and in the first 20 groups that happens about 40% of the time on average.
+
+When you want to know whether you've got it, write it yourself. [The 34 lectures here](/curriculum/) go from MDPs to training language models, and the [exercises](/exercises/) run from value iteration on a gridworld to GRPO, with tests that only pass when your code is right. The lectures are still drafts, each marked unreviewed until a person has checked it.
+
+The slot machines from Figure 1 come back in [the policy gradient lecture](/posts/02-policy-gradients/), learned with REINFORCE. GRPO uses that same gradient on a language model's answers.
 
 Or maybe I just see RL everywhere because I went looking for it in 2016. That's possible too.
